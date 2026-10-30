@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Clinical ER Guide">
+  <title>Clinical ER & Neurosurgery Guide v7.0</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .card { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .active-mob { color: #0284c7; border-top: 3px solid #0284c7; background: rgba(2,132,199,0.08); }
+    .active-side { background: #0284c7; color: #ffffff; border-color: #0284c7; }
+    .no-sb::-webkit-scrollbar { display: none; }
+    input, select, textarea { outline: none; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row pb-20 md:pb-0">
+
+  <!-- ================= TOAST NOTIFICATION ================= -->
+  <div id="toastMsg" class="fixed top-5 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-5 py-2.5 rounded-xl shadow-xl transition-opacity duration-300 opacity-0 pointer-events-none z-50 font-bold text-sm text-center min-w-[200px]"></div>
+
+  <!-- ================= iPAD / TABLET SIDEBAR ================= -->
+  <aside class="hidden md:flex md:flex-col md:w-72 lg:w-80 bg-white border-r border-slate-200 p-4 sticky top-0 h-screen shrink-0 justify-between select-none shadow-sm">
+    <div class="space-y-4 overflow-y-auto no-sb">
+      <div class="flex items-center gap-3 pb-3 border-b border-slate-200">
+        <div class="w-11 h-11 rounded-2xl bg-sky-500/10 border border-sky-400/30 flex items-center justify-center text-2xl">⚕️</div>
+        <div>
+          <h1 class="font-extrabold text-base text-slate-900 leading-tight">Acute Care Pocket</h1>
+          <p class="text-[11px] text-emerald-600 font-semibold">ER • Surgery • Medicine • Rx v7.0</p>
+        </div>
+      </div>
+
+      <!-- Persistent Weight & Age Controller on iPad -->
+      <div class="card p-3.5 space-y-2.5 bg-slate-50 border-slate-200">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <span class="text-[10px] font-bold text-slate-700 block mb-0.5">Patient Weight:</span>
+            <span id="sideWBadge" class="text-xs font-extrabold text-sky-600 bg-white px-2 py-1 rounded-lg border border-sky-200 shadow-sm block text-center">70 kg</span>
+          </div>
+          <div>
+            <span class="text-[10px] font-bold text-slate-700 block mb-0.5">Patient Age:</span>
+            <span id="sideABadge" class="text-xs font-extrabold text-indigo-600 bg-white px-2 py-1 rounded-lg border border-indigo-200 shadow-sm block text-center">45 yrs</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <div>
+            <label class="text-[9px] text-slate-500 block mb-0.5 font-bold">Weight (kg):</label>
+            <input id="wInpSide" type="number" value="70" oninput="setW(this.value)" class="w-full text-center bg-white border border-slate-300 rounded-xl py-1 font-extrabold text-sky-600 text-xs">
+          </div>
+          <div>
+            <label class="text-[9px] text-slate-500 block mb-0.5 font-bold">Age (yrs):</label>
+            <input id="aInpSide" type="number" value="45" oninput="setA(this.value)" class="w-full text-center bg-white border border-slate-300 rounded-xl py-1 font-extrabold text-indigo-600 text-xs">
+          </div>
+        </div>
+        <input id="wRngSide" type="range" min="3" max="150" value="70" oninput="setW(this.value)" class="w-full accent-sky-500 h-2 bg-slate-200 rounded-lg cursor-pointer">
+      </div>
+
+      <!-- Quick CrCl Status on Sidebar -->
+      <div class="card p-3 bg-slate-50 border-slate-200 flex justify-between items-center text-xs">
+        <span class="text-slate-600 font-bold">Renal CrCl:</span>
+        <span id="sideCrClBadge" class="font-extrabold text-emerald-600">86 mL/min</span>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="space-y-1.5 text-xs font-bold text-slate-600">
+        <button onclick="tab('dosing')" id="s-dosing" class="w-full p-3 rounded-xl border border-transparent flex items-center gap-3 text-left transition active-side">
+          <span class="text-lg">💊</span><span>Emergency Medications</span>
+        </button>
+        <button onclick="tab('abx')" id="s-abx" class="w-full p-3 rounded-xl border border-slate-200 flex items-center gap-3 text-left hover:bg-slate-100 transition">
+          <span class="text-lg">📦</span><span>Medication Categories</span>
+        </button>
+        <button onclick="tab('rx')" id="s-rx" class="w-full p-3 rounded-xl border border-slate-200 flex items-center gap-3 text-left hover:bg-slate-100 transition">
+          <span class="text-lg">📝</span><span>Prescription Writer</span>
+        </button>
+        <button onclick="tab('protocols')" id="s-protocols" class="w-full p-3 rounded-xl border border-slate-200 flex items-center gap-3 text-left hover:bg-slate-100 transition">
+          <span class="text-lg">🚨</span><span>ER Protocols</span>
+        </button>
+        <button onclick="tab('scales')" id="s-scales" class="w-full p-3 rounded-xl border border-slate-200 flex items-center gap-3 text-left hover:bg-slate-100 transition">
+          <span class="text-lg">🧠</span><span>Clinical Scales & CrCl</span>
+        </button>
+        <button onclick="tab('cod')" id="s-cod" class="w-full p-3 rounded-xl border border-slate-200 flex items-center gap-3 text-left hover:bg-slate-100 transition">
+          <span class="text-lg">⚰️</span><span>Causes of Death</span>
+        </button>
+      </nav>
+    </div>
+
+    <div class="text-[10px] text-slate-400 text-center border-t border-slate-200 pt-2">
+      Point-of-Care Clinical Reference v7.0
+    </div>
+  </aside>
+
+  <!-- ================= MOBILE TOP HEADER ================= -->
+  <header class="md:hidden sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 px-4 py-2.5 flex justify-between items-center shadow-sm">
+    <div>
+      <h1 class="font-extrabold text-sm text-slate-900">⚕️ Acute Care Pocket</h1>
+      <p class="text-[10px] text-emerald-600 font-bold">ER • Neuro • Med • Rx v7.0</p>
+    </div>
+    <div class="flex gap-1.5">
+      <div class="bg-slate-100 border border-slate-200 rounded-xl px-2 py-1 text-center">
+        <span class="text-[9px] text-slate-500 block">Age</span>
+        <span id="hdrA" class="text-xs font-extrabold text-indigo-600">45 yr</span>
+      </div>
+      <div class="bg-slate-100 border border-slate-200 rounded-xl px-2.5 py-1 text-center">
+        <span class="text-[9px] text-slate-500 block">Weight</span>
+        <span id="hdrW" class="text-xs font-extrabold text-sky-600">70 kg</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="flex-1 p-3.5 md:p-6 max-w-7xl mx-auto w-full space-y-6 overflow-y-auto">
+
+    <!-- Mobile Weight & Age Controller -->
+    <div class="md:hidden card p-3 bg-white space-y-2">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-[10px] font-bold text-slate-700 block mb-1">Patient Weight (kg):</label>
+          <div class="flex items-center gap-1">
+            <button onclick="setW(W-5)" class="w-7 h-7 rounded-lg bg-slate-200 font-bold text-xs text-slate-700">-5</button>
+            <input id="wInpMob" type="number" value="70" oninput="setW(this.value)" class="w-full text-center bg-slate-50 border border-sky-400 rounded-lg py-1 font-extrabold text-sky-600 text-xs">
+            <button onclick="setW(W+5)" class="w-7 h-7 rounded-lg bg-slate-200 font-bold text-xs text-slate-700">+5</button>
+          </div>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-slate-700 block mb-1">Patient Age (yrs):</label>
+          <div class="flex items-center gap-1">
+            <button onclick="setA(A-5)" class="w-7 h-7 rounded-lg bg-slate-200 font-bold text-xs text-slate-700">-5</button>
+            <input id="aInpMob" type="number" value="45" oninput="setA(this.value)" class="w-full text-center bg-slate-50 border border-indigo-400 rounded-lg py-1 font-extrabold text-indigo-600 text-xs">
+            <button onclick="setA(A+5)" class="w-7 h-7 rounded-lg bg-slate-200 font-bold text-xs text-slate-700">+5</button>
+          </div>
+        </div>
+      </div>
+      <input id="wRngMob" type="range" min="3" max="150" value="70" oninput="setW(this.value)" class="w-full accent-sky-500 h-2 bg-slate-200 rounded-lg">
+    </div>
+
+    <!-- ================= SECTION 1: EMERGENCY MEDICATIONS ================= -->
+    <section id="tab-dosing" class="space-y-3">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        <div>
+          <h2 class="text-base md:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+            <span>💊 Emergency Medications (ACLS / ER)</span>
+          </h2>
+          <p class="text-[11px] text-slate-500">Tap any emergency medication row to expand weight-based dosing & clinical pearls</p>
+        </div>
+        <div class="flex gap-2 items-center">
+          <input id="dSearch" type="text" oninput="renderDrugs()" placeholder="🔍 Search drug..."
+            class="w-full md:w-72 bg-white border border-slate-300 focus:border-sky-500 rounded-xl py-2 px-3 text-xs text-slate-800 shadow-sm">
+          <button onclick="toggleGroup('drug')" class="bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 px-3 py-2 rounded-xl text-[11px] font-bold shrink-0 shadow-sm">
+            Expand All
+          </button>
+        </div>
+      </div>
+
+      <div class="flex gap-1.5 overflow-x-auto no-sb text-xs font-bold pb-1" id="catBar"></div>
+      <div id="drugsList" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5 items-start"></div>
+    </section>
+
+    <!-- ================= SECTION 2: MEDICATION CATEGORIES ================= -->
+    <section id="tab-abx" class="hidden space-y-4">
+      <div class="card p-4 bg-gradient-to-r from-sky-50 to-indigo-50 border-sky-300 space-y-2">
+        <h3 class="text-sm font-extrabold text-sky-900">📦 Medication Categories & Protocols</h3>
+        <p class="text-[11px] text-slate-600">Select a category below to explore specific protocols, guidelines, and drug groups.</p>
+      </div>
+
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        <div class="flex gap-1.5 overflow-x-auto no-sb text-xs font-bold pb-1" id="abxCatBar"></div>
+        <div class="flex gap-2 items-center shrink-0">
+          <input id="abxSearch" type="text" oninput="renderAbx()" placeholder="🔍 Search category items..."
+            class="w-full md:w-64 bg-white border border-slate-300 focus:border-emerald-500 rounded-xl py-2 px-3 text-xs text-slate-800 shadow-sm">
+          <button onclick="toggleGroup('abx')" class="bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 px-3 py-2 rounded-xl text-[11px] font-bold shrink-0 shadow-sm">
+            Expand All
+          </button>
+        </div>
+      </div>
+
+      <div id="empiricSection" class="space-y-4">
+        <h3 id="catSectionTitle" class="text-xs font-extrabold uppercase tracking-wider text-emerald-700">🦠 Antibiotics Category</h3>
+        <div id="abxList" class="space-y-4"></div>
+      </div>
+    </section>
+
+    <!-- ================= SECTION 3: PRESCRIPTION WRITER ================= -->
+    <section id="tab-rx" class="hidden space-y-4 text-xs">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        <div>
+          <h2 class="text-base md:text-lg font-extrabold text-slate-900">📝 Prescription Writer & Builder</h2>
+          <p class="text-[11px] text-slate-500">Fill in patient details, add prescriptions, and generate a printable clinical Rx</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="saveRx()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl font-bold shadow-sm flex items-center gap-1.5 shrink-0">
+            <span>💾</span><span>Save to Archive</span>
+          </button>
+          <button onclick="printRx()" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-xl font-bold shadow-sm flex items-center gap-1.5 shrink-0">
+            <span>🖨️</span><span>Print</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div class="card p-4 space-y-3 lg:col-span-1 bg-white">
+          <h3 class="font-extrabold text-sm text-slate-900 border-b border-slate-200 pb-2">👤 Patient & Rx Details</h3>
+          
+          <div>
+            <label class="text-slate-700 font-bold block mb-1">Patient Full Name:</label>
+            <input id="rxPtName" type="text" placeholder="e.g., John Doe" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800 font-semibold">
+          </div>
+
+          <div class="flex gap-2">
+            <div class="w-16 shrink-0">
+              <label class="text-slate-700 font-bold block mb-1 text-[11px] sm:text-xs">Age:</label>
+              <input id="rxPtAge" type="number" placeholder="45" class="w-full h-10 bg-slate-50 border border-slate-300 rounded-xl px-1 text-slate-800 font-semibold text-center text-sm">
+            </div>
+            <div class="w-[85px] sm:w-24 shrink-0">
+              <label class="text-slate-700 font-bold block mb-1 text-[11px] sm:text-xs">Sex:</label>
+              <select id="rxPtSex" class="w-full h-10 bg-slate-50 border border-slate-300 rounded-xl px-1 text-slate-800 font-semibold cursor-pointer text-center text-sm">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+            <div class="w-[135px] sm:w-40 shrink-0">
+              <label class="text-slate-700 font-bold block mb-1 text-[11px] sm:text-xs">Date:</label>
+              <input id="rxDate" type="date" class="w-full h-10 bg-slate-50 border border-slate-300 rounded-xl px-2 text-slate-800 font-semibold text-center text-sm">
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200 space-y-2">
+            <h4 class="font-extrabold text-xs text-sky-700">💊 Add Medication Line</h4>
+            <div>
+              <label class="text-slate-700 block mb-0.5">Medication Name & Strength:</label>
+              <div class="relative">
+                <input id="rxMedName" type="text" oninput="showDrugSuggestions(this.value)" autocomplete="off" placeholder="Type drug (e.g. Ceftriaxone)..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800">
+                <ul id="rxMedSuggestions" class="hidden absolute z-50 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto mt-1 text-xs"></ul>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-slate-700 block mb-0.5">Dose / Frequency:</label>
+                <input id="rxMedFreq" type="text" placeholder="e.g., q24h x 7 days" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800">
+              </div>
+              <div>
+                <label class="text-slate-700 block mb-0.5">Route / Qty:</label>
+                <select id="rxMedRoute" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800 font-semibold cursor-pointer">
+                  <option value="">-- Select --</option>
+                  <optgroup label="Oral (PO)">
+                    <option value="PO / #3 tabs">PO / #3 tabs</option>
+                    <option value="PO / #5 tabs">PO / #5 tabs</option>
+                    <option value="PO / #7 tabs">PO / #7 tabs</option>
+                    <option value="PO / #10 tabs">PO / #10 tabs</option>
+                    <option value="PO / #14 tabs">PO / #14 tabs</option>
+                    <option value="PO / #30 tabs">PO / #30 tabs</option>
+                    <option value="PO / 1 bottle">PO / 1 bottle (Syrup)</option>
+                  </optgroup>
+                  <optgroup label="Intravenous (IV)">
+                    <option value="IV / #1 vial">IV / #1 vial</option>
+                    <option value="IV / #2 vials">IV / #2 vials</option>
+                    <option value="IV / #3 vials">IV / #3 vials</option>
+                    <option value="IV / #5 vials">IV / #5 vials</option>
+                    <option value="IV / #10 vials">IV / #10 vials</option>
+                  </optgroup>
+                  <optgroup label="Intramuscular (IM)">
+                    <option value="IM / #1 ampule">IM / #1 ampule</option>
+                    <option value="IM / #2 ampules">IM / #2 ampules</option>
+                    <option value="IM / #3 ampules">IM / #3 ampules</option>
+                    <option value="IM / #5 ampules">IM / #5 ampules</option>
+                  </optgroup>
+                  <optgroup label="Other">
+                    <option value="SC / #1 pre-filled">SC / #1 pre-filled syringe</option>
+                    <option value="SL / 1 tab">Sublingual (SL) / 1 tab</option>
+                    <option value="Topical / 1 tube">Topical / 1 tube</option>
+                    <option value="Drops / 1 bottle">Ophthalmic/Otic / 1 bottle</option>
+                    <option value="PR / #5 supps">Rectal (PR) / #5 supps</option>
+                    <option value="Nebulizer / #10 respules">Nebulizer / #10 respules</option>
+                  </optgroup>
+                </select>
+              </div>
+            </div>
+            <button onclick="addRxItem()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold shadow-sm mt-1">
+              + Add to Prescription
+            </button>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200">
+            <label class="text-slate-700 font-bold block mb-1">Clinical Notes / Diagnosis:</label>
+            <textarea id="rxNotes" rows="2" placeholder="e.g., Acute Pyelonephritis" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800"></textarea>
+          </div>
+
+          <div class="pt-3 border-t border-slate-200 mt-2">
+            <div class="flex justify-between items-center mb-2">
+              <h4 class="font-extrabold text-sm text-slate-900 flex items-center gap-1.5"><span>⚡</span> Drug Interactions</h4>
+              <span id="interactionBadge" class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded-lg text-[10px] font-bold border border-slate-200">Waiting...</span>
+            </div>
+            <div id="formInteractions" class="text-xs text-slate-500 italic bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+              Add multiple medications to check interactions.
+            </div>
+          </div>
+        </div>
+
+        <div class="card p-5 lg:col-span-2 bg-white flex flex-col justify-between border-2 border-sky-200 shadow-md">
+          <div id="rxPreviewSheet" class="space-y-4">
+            <div class="flex justify-between items-start border-b-2 border-slate-800 pb-3">
+              <div>
+                <h2 class="font-extrabold text-base text-slate-900">Emergency & Acute Care Clinic</h2>
+                <p class="text-[11px] text-slate-500">Department of Clinical Medicine</p>
+              </div>
+              <div class="text-right text-xs">
+                <p class="font-bold text-slate-800">Date: <span id="prevDate" class="font-normal">--</span></p>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 grid grid-cols-2 gap-2 text-xs">
+              <div><span class="text-slate-500 font-bold">Patient Name:</span> <span id="prevName" class="font-extrabold text-slate-900">--</span></div>
+              <div><span class="text-slate-500 font-bold">Age / Sex:</span> <span id="prevAge" class="font-extrabold text-slate-900">--</span></div>
+            </div>
+
+            <div class="space-y-3 min-h-[180px]">
+              <div class="text-2xl font-serif font-extrabold text-sky-700 italic">Rx</div>
+              <div id="rxItemsList" class="space-y-2.5 pl-2">
+                <p class="text-slate-400 italic text-xs">No medications added yet.</p>
+              </div>
+            </div>
+
+            <div id="rxInteractions" class="hidden space-y-2 mt-2 border-t border-slate-200 pt-3"></div>
+
+            <div class="pt-4 border-t border-slate-200 space-y-6">
+              <div class="text-xs">
+                <span class="font-bold text-slate-700">Clinical Notes / Instructions:</span>
+                <p id="prevNotes" class="text-slate-600 mt-0.5">--</p>
+              </div>
+              <div class="flex justify-between items-end pt-4">
+                <div class="text-[10px] text-slate-400">Acute Care Pocket Guide v7.0</div>
+                <div class="text-center">
+                  <div class="border-b border-slate-400 w-44 pb-6 mb-1"></div>
+                  <span class="text-xs font-bold text-slate-800">Physician Signature & Stamp</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prescription Archive Moved Inside Rx Tab -->
+      <div class="pt-6 mt-6 border-t border-slate-200">
+        <h3 class="font-extrabold text-sm text-slate-900 mb-4 flex items-center gap-2">
+          <span>🗂️</span> Saved Prescriptions Archive
+        </h3>
+        <div id="archiveList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Archive cards will be injected here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SECTION 4: EMERGENCY PROTOCOLS ================= -->
+    <section id="tab-protocols" class="hidden space-y-3 text-xs">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        <div>
+          <h2 class="text-base md:text-lg font-extrabold text-slate-900">🚨 Emergency Protocols</h2>
+          <p class="text-[11px] text-slate-500">Tap any protocol card to expand step-by-step management</p>
+        </div>
+        <div class="flex gap-2 items-center shrink-0">
+          <input id="pSearch" type="text" oninput="renderProtos()" placeholder="🔍 Search protocol..."
+            class="w-full md:w-72 bg-white border border-slate-300 focus:border-sky-500 rounded-xl py-2 px-3 text-xs text-slate-800 shadow-sm">
+          <button onclick="toggleGroup('proto')" class="bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 px-3 py-2 rounded-xl text-[11px] font-bold shrink-0 shadow-sm">
+            Expand All
+          </button>
+        </div>
+      </div>
+
+      <div class="flex gap-1.5 overflow-x-auto no-sb text-xs font-bold pb-1" id="protoCatBar"></div>
+      <div id="protoList" class="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start"></div>
+    </section>
+
+    <!-- ================= SECTION 5: CLINICAL SCALES & CRCL ================= -->
+    <section id="tab-scales" class="hidden space-y-4 text-xs">
+      <h2 class="text-base md:text-lg font-extrabold text-slate-900">🧠 Clinical Scales & Renal CrCl</h2>
+      
+      <div class="card p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-300 space-y-3 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-emerald-200/80 pb-2.5">
+          <div>
+            <h3 class="text-sm font-extrabold text-emerald-800">💧 Cockcroft-Gault CrCl</h3>
+            <p class="text-[11px] text-slate-600">Enter Age & Serum Creatinine to calculate creatinine clearance</p>
+          </div>
+          <div class="bg-white border border-emerald-200 rounded-xl px-4 py-1.5 text-center shrink-0 shadow-sm">
+            <span class="text-[10px] text-slate-500 block">Creatinine Clearance</span>
+            <span id="crclResult" class="text-lg font-extrabold text-emerald-700">86 mL/min</span>
+            <span id="crclStage" class="text-[10px] text-emerald-600 block font-bold">Normal (&gt;50)</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2.5 text-xs">
+          <div>
+            <label class="text-slate-700 font-bold block mb-1">Age (years):</label>
+            <input id="rAge" type="number" value="45" min="1" max="110" oninput="calcCrCl()" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-center font-extrabold text-slate-800 shadow-sm">
+          </div>
+          <div>
+            <label class="text-slate-700 font-bold block mb-1">S. Creatinine (mg/dL):</label>
+            <input id="rScr" type="number" step="0.1" value="1.0" min="0.2" max="20" oninput="calcCrCl()" class="w-full bg-white border border-sky-400 rounded-xl p-2 text-center font-extrabold text-sky-700 shadow-sm">
+          </div>
+          <div>
+            <label class="text-slate-700 font-bold block mb-1">Sex:</label>
+            <select id="rSex" onchange="calcCrCl()" class="w-full bg-white border border-slate-300 rounded-xl p-2 font-bold text-slate-800 shadow-sm">
+              <option value="1">Male (×1.0)</option>
+              <option value="0.85">Female (×0.85)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <!-- GCS -->
+        <div class="card p-4 space-y-3 flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-2.5">
+              <div>
+                <span class="text-slate-500 text-[11px]">Glasgow Coma Scale</span>
+                <div id="gcsOut" class="text-xl font-extrabold text-emerald-600">15/15 (E4 V5 M6)</div>
+              </div>
+              <button onclick="copyGCS()" class="bg-sky-50 border border-sky-300 text-sky-700 px-3 py-1.5 rounded-xl font-bold shadow-sm">Copy 📋</button>
+            </div>
+            <div class="space-y-2">
+              <select id="gcsE" onchange="calcGCS()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800 font-semibold"><option value="4">E4: Spontaneous</option><option value="3">E3: To Verbal</option><option value="2">E2: To Pain</option><option value="1">E1: None</option></select>
+              <select id="gcsV" onchange="calcGCS()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800 font-semibold"><option value="5">V5: Oriented</option><option value="4">V4: Confused</option><option value="3">V3: Inappropriate</option><option value="2">V2: Incomprehensible</option><option value="1">V1: None</option></select>
+              <select id="gcsM" onchange="calcGCS()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800 font-semibold"><option value="6">M6: Obeys</option><option value="5">M5: Localizes</option><option value="4">M4: Withdraws</option><option value="3">M3: Flexion</option><option value="2">M2: Extension</option><option value="1">M1: None</option></select>
+            </div>
+          </div>
+          <div id="gcsNote" class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-center text-emerald-700 font-bold">Mild Brain Injury (13–15)</div>
+        </div>
+
+        <!-- Alvarado -->
+        <div class="card p-4 space-y-3 flex flex-col justify-between">
+          <div class="space-y-2.5">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+              <h3 class="font-extrabold text-sm text-sky-700">🩺 Alvarado Score</h3>
+              <div id="alvScore" class="text-sm font-extrabold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-200">0 / 10</div>
+            </div>
+            <div class="space-y-1.5 max-h-48 overflow-y-auto no-sb pr-1">
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="2" onchange="calcAlv()" class="alv-chk accent-sky-600"> Migratory RIF Pain (2)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="1" onchange="calcAlv()" class="alv-chk accent-sky-600"> Anorexia / Ketones (1)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="1" onchange="calcAlv()" class="alv-chk accent-sky-600"> Nausea or Vomiting (1)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="2" onchange="calcAlv()" class="alv-chk accent-sky-600"> Tenderness in RIF (2)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="1" onchange="calcAlv()" class="alv-chk accent-sky-600"> Rebound Tenderness (1)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="1" onchange="calcAlv()" class="alv-chk accent-sky-600"> Elevated Temp &gt; 37.3°C (1)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="2" onchange="calcAlv()" class="alv-chk accent-sky-600"> Leukocytosis &gt; 10k (2)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="1" onchange="calcAlv()" class="alv-chk accent-sky-600"> Shift to Left (1)</label>
+            </div>
+          </div>
+          <div id="alvOut" class="bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-center font-bold text-slate-700 text-xs">Score 1–4: Unlikely</div>
+        </div>
+
+        <!-- Parkland Burn -->
+        <div class="card p-4 space-y-3 flex flex-col justify-between">
+          <div class="space-y-2.5">
+            <h3 class="font-extrabold text-sm text-rose-700 border-b border-slate-200 pb-2">🔥 Parkland Burn Fluid</h3>
+            <div>
+              <label class="text-slate-700 block mb-1">Burn %TBSA (1–100%):</label>
+              <input id="burnTbsa" type="number" value="20" min="1" max="100" oninput="calcBurn()" class="w-full bg-slate-50 border border-rose-300 rounded-xl p-2.5 font-extrabold text-rose-700 text-sm">
+            </div>
+          </div>
+          <div id="burnOut" class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1 text-center">
+            <div class="text-sm font-extrabold text-slate-900">Total 24h: 5600 mL LR</div>
+            <div class="text-xs text-sky-700 font-bold">1st 8h: 2800 mL (350 mL/hr)</div>
+          </div>
+        </div>
+
+        <!-- qSOFA Score (Sepsis) -->
+        <div class="card p-4 space-y-3 flex flex-col justify-between">
+          <div class="space-y-2.5">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+              <h3 class="font-extrabold text-sm text-purple-700">🦠 qSOFA (Sepsis)</h3>
+              <div id="qsofaScore" class="text-sm font-extrabold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200">0 / 3</div>
+            </div>
+            <div class="space-y-1.5 max-h-48 overflow-y-auto no-sb pr-1 text-[11px]">
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="1" onchange="calcQsofa()" class="qsofa-chk accent-purple-600"> Altered Mental Status (GCS &lt; 15)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="1" onchange="calcQsofa()" class="qsofa-chk accent-purple-600"> Respiratory Rate ≥ 22/min</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="1" onchange="calcQsofa()" class="qsofa-chk accent-purple-600"> Systolic BP ≤ 100 mmHg</label>
+            </div>
+          </div>
+          <div id="qsofaOut" class="bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-center font-bold text-slate-700 text-xs">Score 0–1: Low Risk</div>
+        </div>
+
+        <!-- Wells' Criteria for PE -->
+        <div class="card p-4 space-y-3 flex flex-col justify-between">
+          <div class="space-y-2.5">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+              <h3 class="font-extrabold text-sm text-indigo-700">🫁 Wells' Criteria (PE)</h3>
+              <div id="wellsScore" class="text-sm font-extrabold text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-200">0.0</div>
+            </div>
+            <div class="space-y-1.5 max-h-48 overflow-y-auto no-sb pr-1 text-[11px]">
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="3" onchange="calcWells()" class="wells-chk accent-indigo-600"> Clinical signs of DVT (3.0)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="3" onchange="calcWells()" class="wells-chk accent-indigo-600"> Alt diagnosis less likely (3.0)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="1.5" onchange="calcWells()" class="wells-chk accent-indigo-600"> Heart rate > 100 bpm (1.5)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="1.5" onchange="calcWells()" class="wells-chk accent-indigo-600"> Immobilization / Surgery (1.5)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="1.5" onchange="calcWells()" class="wells-chk accent-indigo-600"> Previous DVT / PE (1.5)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="1" onchange="calcWells()" class="wells-chk accent-indigo-600"> Hemoptysis (1.0)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer"><input type="checkbox" value="1" onchange="calcWells()" class="wells-chk accent-indigo-600"> Malignancy (1.0)</label>
+            </div>
+          </div>
+          <div id="wellsOut" class="bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-center font-bold text-slate-700 text-xs">Score ≤ 4: PE Unlikely</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= SECTION 6: CAUSES OF DEATH ================= -->
+    <section id="tab-cod" class="hidden space-y-4 text-xs">
+      <div class="flex flex-col gap-2.5">
+        <h2 class="text-base md:text-lg font-extrabold text-slate-900">⚰️ Causes of Death (أسباب الوفاة)</h2>
+        <p class="text-[11px] text-slate-500">الأسباب والاعتلالات المرضية الطبيعية (التي تُكتب في شهادات الوفاة داخل المستشفيات والمؤسسات الصحية في العراق دون الحاجة لتحويلها إلى الطب العدلي)</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" dir="rtl">
+        
+        <!-- 1 -->
+        <div class="card p-4 space-y-2 border-t-4 border-t-rose-500">
+          <h3 class="font-extrabold text-sm text-rose-800 border-b border-slate-100 pb-2">1. أمراض الجهاز الدوري والقلبي</h3>
+          <ul class="space-y-1.5 text-slate-700 leading-relaxed font-semibold">
+            <li>• توقف القلب التام أو المفاجئ (Cardiac Arrest / Asystole)</li>
+            <li>• احتشاء عضلة القلب الحاد (Acute Myocardial Infarction / جلطة القلب)</li>
+            <li>• قصور القلب الاحتقاني المزمن (Chronic Congestive Heart Failure)</li>
+            <li>• ارتفاع ضغط الدم الخبيث ومضاعفاته (Hypertensive Heart Disease)</li>
+            <li>• الجلطات والنزوف الدماغية التلقائية (Stroke / Intracerebral Hemorrhage)</li>
+          </ul>
+        </div>
+
+        <!-- 2 -->
+        <div class="card p-4 space-y-2 border-t-4 border-t-sky-500">
+          <h3 class="font-extrabold text-sm text-sky-800 border-b border-slate-100 pb-2">2. أمراض الجهاز التنفسي</h3>
+          <ul class="space-y-1.5 text-slate-700 leading-relaxed font-semibold">
+            <li>• الالتهاب الرئوي الحاد أو القصباتي (Acute Pneumonia / Bronchopneumonia)</li>
+            <li>• فشل تنفسي حاد أو مزمن (Acute / Chronic Respiratory Failure)</li>
+            <li>• تفاقم الانسداد الرئوي المزمن (COPD Exacerbation)</li>
+            <li>• الانسداد الرئوي التجلطي (Pulmonary Thromboembolism)</li>
+          </ul>
+        </div>
+
+        <!-- 3 -->
+        <div class="card p-4 space-y-2 border-t-4 border-t-fuchsia-500">
+          <h3 class="font-extrabold text-sm text-fuchsia-800 border-b border-slate-100 pb-2">3. الأورام والأمراض السرطانية</h3>
+          <ul class="space-y-1.5 text-slate-700 leading-relaxed font-semibold">
+            <li>• السرطان المنتشر والمتقدم (Disseminated Malignancy / Metastatic Cancer)</li>
+            <li>• الأورام الخبيثة العضوية (مثل: سرطان الرئة، القولون، الثدي، أو أورام الدماغ الخبيثة Glioblastoma)</li>
+          </ul>
+        </div>
+
+        <!-- 4 -->
+        <div class="card p-4 space-y-2 border-t-4 border-t-amber-500">
+          <h3 class="font-extrabold text-sm text-amber-800 border-b border-slate-100 pb-2">4. أمراض الجهاز الهضمي والكبد</h3>
+          <ul class="space-y-1.5 text-slate-700 leading-relaxed font-semibold">
+            <li>• غيبوبة وفشل الكبد التام (Hepatic Failure / Hepatic Encephalopathy)</li>
+            <li>• تليف الكبد المزمن (Liver Cirrhosis)</li>
+            <li>• نزف الجهاز الهضمي العلوي الحاد (Acute GI Bleeding / دوالي المريء)</li>
+            <li>• التهاب البنكرياس الحاد (Acute Pancreatitis)</li>
+          </ul>
+        </div>
+
+        <!-- 5 -->
+        <div class="card p-4 space-y-2 border-t-4 border-t-emerald-500">
+          <h3 class="font-extrabold text-sm text-emerald-800 border-b border-slate-100 pb-2">5. أمراض الجهاز البولي والكلى</h3>
+          <ul class="space-y-1.5 text-slate-700 leading-relaxed font-semibold">
+            <li>• الفشل الكلوي التام والمزمن (End-Stage Renal Disease / CRF)</li>
+            <li>• التسمم البولي / اليوريميا (Uremia)</li>
+          </ul>
+        </div>
+
+        <!-- 6 -->
+        <div class="card p-4 space-y-2 border-t-4 border-t-orange-500">
+          <h3 class="font-extrabold text-sm text-orange-800 border-b border-slate-100 pb-2">6. الأيض، الغدد الصماء والإنتان</h3>
+          <ul class="space-y-1.5 text-slate-700 leading-relaxed font-semibold">
+            <li>• غيبوبة السكري (Diabetic Ketoacidosis / Hyperosmolar Coma)</li>
+            <li>• تعفن الدم الحاد والصدمة الإنتانية (Sepsis / Septic Shock)</li>
+            <li>• الفشل المتعدد للأعضاء (Multiple Organ Dysfunction Syndrome - MODS)</li>
+          </ul>
+        </div>
+
+        <!-- 7 -->
+        <div class="card p-4 space-y-2 border-t-4 border-t-purple-500">
+          <h3 class="font-extrabold text-sm text-purple-800 border-b border-slate-100 pb-2">7. أمراض الجهاز العصبي المركزي</h3>
+          <ul class="space-y-1.5 text-slate-700 leading-relaxed font-semibold">
+            <li>• التهاب السحايا أو التهاب الدماغ الحاد (Acute Meningitis / Encephalitis)</li>
+            <li>• الوذمة الدماغية وارتفاع توتر القحف الحاد (Brain Edema / Raised ICP)</li>
+            <li>• مرض العصبون الحركي المتفاقم / التصلب الجانبي الضموري (ALS)</li>
+            <li>• مراحل الخرف المتقدمة وألزهايمر (Advanced Dementia / Alzheimer's Disease)</li>
+            <li>• نوبات الصرع المستمرة والمستعصية (Status Epilepticus)</li>
+          </ul>
+        </div>
+
+        <!-- 8 -->
+        <div class="card p-4 space-y-2 border-t-4 border-t-red-600">
+          <h3 class="font-extrabold text-sm text-red-800 border-b border-slate-100 pb-2">8. أمراض الدم واضطرابات التخثر</h3>
+          <ul class="space-y-1.5 text-slate-700 leading-relaxed font-semibold">
+            <li>• فقر الدم الحاد والخطير (Severe Anemia / Aplastic Anemia)</li>
+            <li>• ابيضاض الدم الحاد والمتقدم (Acute Leukemia / Lymphoma)</li>
+            <li>• التخثر المنتشر داخل الأوعية (DIC)</li>
+          </ul>
+        </div>
+
+        <!-- 9 -->
+        <div class="card p-4 space-y-2 border-t-4 border-t-teal-500">
+          <h3 class="font-extrabold text-sm text-teal-800 border-b border-slate-100 pb-2">9. مضاعفات العمليات والتدخلات الطبية</h3>
+          <ul class="space-y-1.5 text-slate-700 leading-relaxed font-semibold">
+            <li>• الصدمة الإنتانية أو الفشل القلبي/الرئوي اللاحق للعمليات الجراحية المبرمجة للمرضى (Post-operative Complications)</li>
+          </ul>
+        </div>
+
+        <!-- 10 -->
+        <div class="card p-4 space-y-2 border-t-4 border-t-slate-500">
+          <h3 class="font-extrabold text-sm text-slate-800 border-b border-slate-100 pb-2">10. الشيخوخة والوهن العام</h3>
+          <ul class="space-y-1.5 text-slate-700 leading-relaxed font-semibold">
+            <li>• الوهن العام والشيخوخة المتقدمة مع توقف وظائف الأعضاء التدريجي (Advanced Senility / General Debility)</li>
+          </ul>
+        </div>
+
+        <!-- 11 -->
+        <div class="card p-4 space-y-2 border-t-4 border-t-indigo-500">
+          <h3 class="font-extrabold text-sm text-indigo-800 border-b border-slate-100 pb-2">11. الأمراض الاستقلابية والمناعية</h3>
+          <ul class="space-y-1.5 text-slate-700 leading-relaxed font-semibold">
+            <li>• الفشل الغذائي الحاد وسوء التغذية الشديد المرتبط بالأمراض المزمنة (Cachexia / Severe Malnutrition)</li>
+            <li>• أمراض المناعة الذاتية المتقدمة (مثل: الذئبة الحمراء الجهازية SLE)</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="mt-10 mb-2 text-center text-[11px] text-slate-400 font-semibold w-full flex justify-center items-center gap-1.5">
+      <span>Developed by Dr. Mochtaba</span>
+    </footer>
+
+  </main>
+
+  <!-- ================= MOBILE BOTTOM NAV (6 TABS) ================= -->
+  <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-slate-200 grid grid-cols-6 z-40 text-[9px] font-bold shadow-md">
+    <button onclick="tab('dosing')" id="n-dosing" class="py-2 flex flex-col items-center active-mob"><span class="text-base">💊</span><span>Meds</span></button>
+    <button onclick="tab('abx')" id="n-abx" class="py-2 flex flex-col items-center text-slate-500"><span class="text-base">📦</span><span>Cats</span></button>
+    <button onclick="tab('rx')" id="n-rx" class="py-2 flex flex-col items-center text-slate-500"><span class="text-base">📝</span><span>Rx</span></button>
+    <button onclick="tab('protocols')" id="n-protocols" class="py-2 flex flex-col items-center text-slate-500"><span class="text-base">🚨</span><span>Protos</span></button>
+    <button onclick="tab('scales')" id="n-scales" class="py-2 flex flex-col items-center text-slate-500"><span class="text-base">🧠</span><span>Scores</span></button>
+    <button onclick="tab('cod')" id="n-cod" class="py-2 flex flex-col items-center text-slate-500"><span class="text-base">⚰️</span><span>Death</span></button>
+  </nav>
+
+  <script>
+    let W = 70, A = 45, CrCl = 86, curCat = 'all', curAbxCat = 'antibiotics', curProtoCat = 'all';
+    const openSet = new Set();
+    let rxItems = [
+      { name: "Ceftriaxone 1g IV", freq: "q24h x 7 days", route: "IV / #7 vials" }
+    ];
+
+    const cats = [
+      ['all','All Meds'],['resus','⚡ Resus & ACLS'],['neuro','🧠 Neuro & Osmotherapy'],['cardio','❤️ BP & Cardiac'],['misc','🧪 GI / Tox / Antidotes']
+    ];
+
+    const abxCats = [
+      ['antibiotics','🦠 Antibiotics & Antimicrobials'],
+      ['cvs','❤️ Cardiovascular & Antihypertensive'],
+      ['hema','🩸 Hematology & Anticoagulation'],
+      ['resp','🫁 Respiratory & Pulmonology'],
+      ['endo','⚖️ Endocrinology & Metabolism'],
+      ['gi','🧪 Gastrointestinal & Hepatology'],
+      ['immune','🧬 Allergy, Immunology & Rheumatology'],
+      ['uro','💧 Urology & Nephrology'],
+      ['fluids','💧 IV Fluids & Resuscitation'],
+      ['tox','🚨 Toxicology, Psychiatry & Obstetrics'],
+      ['analgesia','💊 Analgesia & Pain Mgmt']
+    ];
+
+    const protoCats = [
+      ['all','All Protocols'],
+      ['resus','⚡ Resus & ACLS'],
+      ['neuro','🧠 Neurosurgery'],
+      ['surg','🔪 Trauma Surgery'],
+      ['med','🏥 Internal Medicine']
+    ];
+
+    const interactionsDB = [
+      {
+        conditions: [ ["ceftriaxone"], ["calcium"] ],
+        severity: "Severe",
+        desc: "Precipitation risk in neonates and IV lines. Avoid concurrent IV administration."
+      },
+      {
+        conditions: [ ["warfarin"], ["metronidazole", "amiodarone", "bactrim", "tmp-smx", "ciprofloxacin", "fluconazole"] ],
+        severity: "High",
+        desc: "Significantly increases warfarin toxicity and INR (high bleeding risk). Monitor INR closely."
+      },
+      {
+        conditions: [ ["digoxin"], ["amiodarone", "verapamil", "diltiazem", "clarithromycin", "spironolactone"] ],
+        severity: "High",
+        desc: "Increases digoxin serum levels and risk of toxicity. Monitor levels closely."
+      },
+      {
+        conditions: [ ["aspirin", "clopidogrel", "ticagrelor", "ibuprofen", "naproxen", "diclofenac"], ["heparin", "enoxaparin", "apixaban", "rivaroxaban", "warfarin", "alteplase"] ],
+        severity: "High",
+        desc: "Increased bleeding risk due to synergistic antiplatelet and anticoagulant effects."
+      },
+      {
+        conditions: [ ["clopidogrel"], ["omeprazole", "esomeprazole", "pantoprazole", "lansoprazole"] ],
+        severity: "Moderate",
+        desc: "Proton Pump Inhibitors (PPIs) may reduce the antiplatelet efficacy of clopidogrel."
+      },
+      {
+        conditions: [ ["spironolactone", "eplerenone"], ["lisinopril", "captopril", "enalapril", "losartan", "valsartan", "potassium"] ],
+        severity: "High",
+        desc: "Increased risk of severe hyperkalemia. Monitor serum K+ and renal function closely."
+      },
+      {
+        conditions: [ ["ibuprofen", "naproxen", "celecoxib", "diclofenac", "ketorolac"], ["lisinopril", "captopril", "enalapril", "losartan", "valsartan"] ],
+        severity: "Moderate",
+        desc: "NSAIDs can reduce antihypertensive efficacy and significantly increase the risk of Acute Kidney Injury (AKI)."
+      },
+      {
+        conditions: [ ["azithromycin", "clarithromycin", "ciprofloxacin", "levofloxacin", "moxifloxacin"], ["amiodarone", "haloperidol", "ondansetron", "escitalopram", "fluconazole"] ],
+        severity: "Severe",
+        desc: "High risk of QTc prolongation and Torsades de Pointes. Monitor ECG."
+      },
+      {
+        conditions: [ ["sertraline", "escitalopram", "fluoxetine", "citalopram", "paroxetine"], ["linezolid", "tramadol", "fentanyl", "lithium"] ],
+        severity: "Severe",
+        desc: "Risk of Serotonin Syndrome (agitation, hyperthermia, clonus, tremor)."
+      },
+      {
+        conditions: [ ["atorvastatin", "simvastatin", "rosuvastatin"], ["clarithromycin", "amiodarone", "diltiazem", "verapamil", "itraconazole"] ],
+        severity: "High",
+        desc: "Increased statin concentrations leading to a higher risk of myopathy and rhabdomyolysis."
+      },
+      {
+        conditions: [ ["sildenafil", "tadalafil"], ["nitroglycerin", "isosorbide"] ],
+        severity: "Severe",
+        desc: "Strictly contraindicated. Can cause refractory, fatal hypotension."
+      },
+      {
+        conditions: [ ["ibuprofen", "naproxen", "celecoxib", "diclofenac", "ketorolac"], ["furosemide", "bumetanide", "hydrochlorothiazide"] ],
+        severity: "Moderate",
+        desc: "NSAIDs blunt the diuretic response and increase the risk of renal impairment."
+      },
+      {
+        conditions: [ ["morphine", "fentanyl", "tramadol", "oxycodone", "codeine"], ["diazepam", "midazolam", "lorazepam", "alprazolam"] ],
+        severity: "Severe",
+        desc: "Concomitant use increases the risk of profound sedation, respiratory depression, coma, and death. (FDA Black Box)"
+      },
+      {
+        conditions: [ ["methotrexate"], ["ibuprofen", "naproxen", "diclofenac", "ketorolac", "amoxicillin", "ampicillin", "bactrim", "tmp-smx"] ],
+        severity: "High",
+        desc: "Can significantly increase methotrexate levels, leading to severe bone marrow suppression and systemic toxicity."
+      },
+      {
+        conditions: [ ["lithium"], ["ibuprofen", "naproxen", "celecoxib", "diclofenac", "ketorolac", "hydrochlorothiazide", "lisinopril", "captopril", "enalapril", "losartan", "valsartan"] ],
+        severity: "High",
+        desc: "Significantly decreases lithium clearance, leading to lithium toxicity (tremor, confusion, arrhythmias)."
+      },
+      {
+        conditions: [ ["ciprofloxacin", "levofloxacin", "moxifloxacin", "doxycycline"], ["calcium", "iron", "ferrous", "magnesium", "aluminum", "antacid"] ],
+        severity: "Moderate",
+        desc: "Polyvalent cations bind to these antibiotics in the GI tract, severely reducing their absorption and efficacy. Separate by 2-4 hours."
+      },
+      {
+        conditions: [ ["valproate", "valproic acid", "depakote"], ["meropenem", "imipenem", "ertapenem"] ],
+        severity: "Severe",
+        desc: "Carbapenems rapidly and significantly decrease serum valproate levels, leading to breakthrough seizures."
+      },
+      {
+        conditions: [ ["ibuprofen", "naproxen", "diclofenac", "ketorolac", "celecoxib"], ["prednisolone", "dexamethasone", "hydrocortisone", "methylprednisolone"] ],
+        severity: "High",
+        desc: "Concurrent use synergistically increases the risk of severe gastrointestinal ulceration and bleeding."
+      },
+      {
+        conditions: [ ["apixaban", "rivaroxaban", "dabigatran"], ["phenytoin", "carbamazepine", "rifampin", "st. john"] ],
+        severity: "High",
+        desc: "Strong CYP3A4/P-gp inducers rapidly decrease DOAC levels, leading to treatment failure (thrombosis/stroke risk)."
+      },
+      {
+        conditions: [ ["amiodarone"], ["furosemide", "bumetanide", "hydrochlorothiazide"] ],
+        severity: "Moderate",
+        desc: "Diuretic-induced hypokalemia or hypomagnesemia greatly increases the risk of Amiodarone-induced arrhythmias (TdP)."
+      }
+    ];
+
+    function checkInteractions() {
+      let alerts = [];
+      let currentDrugNames = rxItems.map(item => item.name.toLowerCase());
+      
+      interactionsDB.forEach(interaction => {
+        let matchedConditions = [];
+        let isMatch = interaction.conditions.every(condGroup => {
+          let foundSynonym = condGroup.find(syn => currentDrugNames.some(cdn => cdn.includes(syn)));
+          if (foundSynonym) {
+            matchedConditions.push(foundSynonym.charAt(0).toUpperCase() + foundSynonym.slice(1));
+            return true;
+          }
+          return false;
+        });
+        if (isMatch) alerts.push({ ...interaction, found: matchedConditions });
+      });
+      return alerts;
+    }
+
+    const drugs = [
+      { id: "d1", n: "Atropine", c: "resus", t: "Bradycardia / Organophosphate Antidote", f: w => `• <b>Symptomatic Bradycardia:</b> <b class="text-sky-600">${w >= 40 ? '1 mg IV' : (w * 0.02).toFixed(2) + ' mg IV'}</b> q3–5min<br>• <b>Organophosphate Poisoning:</b> <b class="text-sky-600">2 – 5 mg IV</b>`, i: "In pediatric bradycardia, minimum dose is 0.1 mg IV." },
+      { id: "d2", n: "Sodium Nitroprusside", c: "cardio", t: "Hypertensive Emergency", f: () => `• <b>Continuous IV Infusion:</b> <b class="text-sky-600">0.3 – 0.5 mcg/kg/min</b> initially`, i: "Protect infusion bag and tubing from light with opaque foil." },
+      { id: "d3", n: "Amiodarone", c: "resus", t: "Cardiac Arrest / Arrhythmias", f: () => `• <b>Cardiac Arrest:</b> <b class="text-sky-600">300 mg IV Push</b>, followed by 150 mg IV`, i: "May cause profound hypotension when pushed too rapidly." },
+      { id: "d4", n: "Mannitol 20%", c: "neuro", t: "Raised ICP", f: w => `• <b>Acute ICP Bolus:</b> <b class="text-sky-600">${Math.round(w * 2.5)} – ${Math.round(w * 5)} mL IV</b> over 15–20 min`, i: "Contraindicated in anuria or active intracranial bleeding." },
+      { id: "d5", n: "Epinephrine", c: "resus", t: "Cardiac Arrest / Anaphylaxis", f: w => `• <b>Cardiac Arrest:</b> <b class="text-sky-600">${w >= 50 ? '1 mg IV' : (w * 0.01).toFixed(2) + ' mg'}</b>`, i: "For refractory shock, start infusion at 0.05 – 0.5 mcg/kg/min." },
+      // New Drugs
+      { id: "d6", n: "Hypertonic Saline 3%", c: "neuro", t: "Raised ICP / Hyponatremia", f: w => `• <b>Acute ICP Bolus:</b> <b class="text-sky-600">${Math.min(Math.round(w * 2.5), 250)} mL IV</b> over 10-20 mins<br>• <b>Continuous Infusion:</b> 0.5 - 1.5 mL/kg/hr`, i: "Monitor serum sodium. Target Na typically 145-155 mEq/L." },
+      { id: "d7", n: "Phenytoin", c: "neuro", t: "Status Epilepticus", f: w => `• <b>Loading Dose:</b> <b class="text-sky-600">${Math.round(w * 18)} mg IV</b> (15-20 mg/kg)`, i: "Maximum infusion rate is 50 mg/min to prevent severe hypotension and arrhythmias. Dilute only in Normal Saline." },
+      { id: "d8", n: "Levetiracetam (Keppra)", c: "neuro", t: "Status Epilepticus", f: w => `• <b>Loading Dose:</b> <b class="text-sky-600">${Math.min(Math.round(w * 40), 3000)} mg IV</b> (40-60 mg/kg)`, i: "Usually 1 to 2 grams for adult load. Minimal drug interactions compared to Phenytoin." },
+      { id: "d9", n: "Labetalol", c: "cardio", t: "Hypertensive Emergency", f: () => `• <b>IV Bolus:</b> <b class="text-sky-600">10 – 20 mg IV</b> over 2 mins<br>• May repeat or double dose q10min (max 300mg total)`, i: "Combined alpha and beta blocker. Avoid in acute decompensated heart failure or asthma." },
+      { id: "d10", n: "Nicardipine", c: "cardio", t: "Hypertensive Emergency / Stroke", f: () => `• <b>IV Infusion:</b> <b class="text-sky-600">5 mg/hr</b><br>• Titrate by 2.5 mg/hr q5-15min (Max 15 mg/hr)`, i: "Excellent agent for acute blood pressure control in hemorrhagic stroke (rapid on/off)." },
+      { id: "d11", n: "Naloxone", c: "misc", t: "Opioid Overdose", f: () => `• <b>IV/IM/IN:</b> <b class="text-sky-600">0.4 – 2 mg</b> every 2–3 mins`, i: "Use smaller aliquots (0.04-0.1mg) in chronic opioid users to reverse apnea without causing severe acute withdrawal." },
+      { id: "d12", n: "Flumazenil", c: "misc", t: "Benzodiazepine Overdose", f: () => `• <b>IV Bolus:</b> <b class="text-sky-600">0.2 mg IV</b> over 15-30 secs<br>• Repeat q1min up to 3mg max`, i: "Strictly contraindicated if patient is on chronic benzos or has co-ingested TCAs (causes refractory seizures)." },
+      { id: "d13", n: "Tranexamic Acid (TXA)", c: "resus", t: "Massive Hemorrhage / Trauma", f: () => `• <b>Loading Dose:</b> <b class="text-sky-600">1 g IV</b> over 10 minutes<br>• <b>Maintenance:</b> 1 g IV over 8 hours`, i: "Most effective if given within 3 hours of injury. Essential part of Massive Transfusion Protocol." },
+      { id: "d14", n: "Ketamine", c: "resus", t: "RSI / Sedation / Analgesia", f: w => `• <b>Intubation (RSI):</b> <b class="text-sky-600">${Math.round(w * 1.5)} mg IV</b> (1.5-2 mg/kg)<br>• <b>Analgesia:</b> 0.1 - 0.3 mg/kg IV`, i: "Maintains blood pressure and respiratory drive. Excellent for asthmatics (bronchodilator)." },
+      { id: "d15", n: "Rocuronium", c: "resus", t: "Paralytic for RSI", f: w => `• <b>Intubation (RSI):</b> <b class="text-sky-600">${Math.round(w * 1)} mg IV</b> (0.6-1.2 mg/kg)`, i: "Onset in 45-60 seconds, lasts 45-60 minutes. Can be reversed with Sugammadex." }
+    ];
+
+    const catItems = [
+      // 1. Cardiovascular & Antihypertensive
+      { id: "c1", cat: "cvs", badge: "Beta-Blocker", badgeColor: "bg-rose-100 text-rose-700", title: "Metoprolol", class: "β1-Selective Blocker", dose: "Tartrate (PO): 25–100 mg BID<br>Succinate (ER): 25–200 mg daily<br>Acute IV: 5 mg slow push q5min (max 3)", notes: "First-line for rate control in AFib, ACS, and HFrEF." },
+      { id: "c2", cat: "cvs", badge: "Beta-Blocker", badgeColor: "bg-rose-100 text-rose-700", title: "Bisoprolol (Concor)", class: "β1-Selective Blocker", dose: "Initial: 1.25–2.5 mg PO daily<br>Maint: 5–10 mg PO daily", notes: "Core mortality-reducing beta-blocker in HFrEF." },
+      { id: "c3", cat: "cvs", badge: "Beta-Blocker", badgeColor: "bg-rose-100 text-rose-700", title: "Carvedilol", class: "Non-selective β & α1 Blocker", dose: "Initial: 3.125 mg PO BID<br>Maint: 25 mg PO BID (50mg if >85kg)", notes: "Take with food to reduce orthostatic hypotension." },
+      { id: "c4", cat: "cvs", badge: "Beta-Blocker", badgeColor: "bg-rose-100 text-rose-700", title: "Propranolol (Inderal)", class: "Non-selective β-Blocker", dose: "HTN: 10–40 mg PO 3-4x daily<br>Thyrotoxicosis: 40–80 mg PO q6h", notes: "Used for variceal prophylaxis, essential tremor, migraines." },
+      { id: "c5", cat: "cvs", badge: "CCB", badgeColor: "bg-amber-100 text-amber-800", title: "Amlodipine", class: "Dihydropyridine CCB", dose: "5–10 mg PO daily", notes: "Long-acting. Side effect: dose-dependent pedal edema." },
+      { id: "c6", cat: "cvs", badge: "CCB", badgeColor: "bg-amber-100 text-amber-800", title: "Nifedipine (Adalat LA)", class: "Dihydropyridine CCB", dose: "Extended-Release: 30–90 mg PO daily", notes: "Avoid immediate-release SL in hypertensive urgency." },
+      { id: "c7", cat: "cvs", badge: "CCB", badgeColor: "bg-amber-100 text-amber-800", title: "Diltiazem", class: "Non-DHP CCB", dose: "IV Bolus: 0.25 mg/kg (~20 mg)<br>Infusion: 5–15 mg/hr<br>PO (ER): 120–360 mg daily", notes: "Avoid in decompensated HFrEF or 2nd/3rd-degree AV block." },
+      { id: "c8", cat: "cvs", badge: "CCB", badgeColor: "bg-amber-100 text-amber-800", title: "Verapamil", class: "Non-DHP CCB", dose: "IV Bolus: 5–10 mg<br>PO: 80–120 mg TID", notes: "Strong negative inotrope; causes constipation." },
+      { id: "c9", cat: "cvs", badge: "Antiarrhythmic", badgeColor: "bg-purple-100 text-purple-700", title: "Amiodarone", class: "Class III Antiarrhythmic", dose: "Arrest: 300 mg IV push<br>Stable: 150 mg IV over 10 min, then 1 mg/min x 6 hrs<br>PO: 200 mg daily", notes: "Dilute in D5W. Monitor thyroid, LFTs, and PFTs long-term." },
+      { id: "c10", cat: "cvs", badge: "Antiarrhythmic", badgeColor: "bg-purple-100 text-purple-700", title: "Adenosine", class: "AV Nodal Blocker", dose: "Initial: 6 mg rapid IV push + 20mL NS flush<br>Repeat: 12 mg IV push", notes: "Drug of choice for stable narrow-complex SVT." },
+      { id: "c11", cat: "cvs", badge: "Inotrope", badgeColor: "bg-sky-100 text-sky-700", title: "Digoxin", class: "Cardiac Glycoside", dose: "Load: 0.5 mg IV/PO, then 0.25 mg q6h x2<br>Maint: 0.125–0.25 mg daily", notes: "Renally cleared; toxicity exacerbated by hypokalemia." },
+      { id: "c12", cat: "cvs", badge: "RAAS", badgeColor: "bg-emerald-100 text-emerald-800", title: "Captopril", class: "ACE Inhibitor", dose: "12.5–50 mg PO 2-3x daily", notes: "Used sublingually in hypertensive urgency (25mg)." },
+      { id: "c13", cat: "cvs", badge: "RAAS", badgeColor: "bg-emerald-100 text-emerald-800", title: "Lisinopril / Enalapril", class: "ACE Inhibitor", dose: "Lisinopril: 5–40 mg PO daily<br>Enalapril: 2.5–20 mg PO BID", notes: "Contraindicated in pregnancy and bilateral renal artery stenosis." },
+      { id: "c14", cat: "cvs", badge: "RAAS", badgeColor: "bg-emerald-100 text-emerald-800", title: "Losartan / Valsartan", class: "ARB", dose: "Losartan: 25–100 mg PO daily<br>Valsartan: 80–320 mg PO daily", notes: "Preferred alternative for ACE-inhibitor induced dry cough." },
+      { id: "c15", cat: "cvs", badge: "ARNI", badgeColor: "bg-emerald-100 text-emerald-800", title: "Sacubitril/Valsartan (Entresto)", class: "ARNI", dose: "Initial: 24/26 mg or 49/51 mg PO BID<br>Target: 97/103 mg PO BID", notes: "Requires strict 36-hr washout period after stopping ACEi." },
+      { id: "c16", cat: "cvs", badge: "Diuretic", badgeColor: "bg-blue-100 text-blue-800", title: "Furosemide (Lasix)", class: "Loop Diuretic", dose: "IV Bolus: 20–80 mg (up to 200mg in pul. edema)<br>PO: 20–80 mg 1-2x daily", notes: "Oral bioavailability is ~50% (20mg IV = 40mg PO)." },
+      { id: "c17", cat: "cvs", badge: "Diuretic", badgeColor: "bg-blue-100 text-blue-800", title: "Bumetanide", class: "Loop Diuretic", dose: "0.5–2 mg IV/PO once or BID (Max 10 mg/day)", notes: "40x more potent than Furosemide." },
+      { id: "c18", cat: "cvs", badge: "Diuretic", badgeColor: "bg-blue-100 text-blue-800", title: "Hydrochlorothiazide (HCTZ)", class: "Thiazide Diuretic", dose: "12.5–25 mg PO daily (Max 50mg/day)", notes: "Ineffective if eGFR < 30 mL/min." },
+      { id: "c19", cat: "cvs", badge: "Diuretic", badgeColor: "bg-blue-100 text-blue-800", title: "Spironolactone", class: "Aldosterone Antagonist", dose: "Heart Failure: 25–50 mg daily<br>Cirrhosis: 100–400 mg daily", notes: "Hold if K+ > 5.0 or Cr > 2.5. Causes gynecomastia." },
+      { id: "c20", cat: "cvs", badge: "Nitrate", badgeColor: "bg-slate-200 text-slate-800", title: "Nitroglycerin (GTN)", class: "Vasodilator", dose: "SL: 0.4 mg q5min (max 3)<br>IV: 5–200 mcg/min", notes: "Avoid in RV infarct or w/in 24-48h of PDE-5 inhibitors." },
+      { id: "c21", cat: "cvs", badge: "Nitrate", badgeColor: "bg-slate-200 text-slate-800", title: "Isosorbide Dinitrate / Mononitrate", class: "Oral Nitrate", dose: "ISDN: 10–40 mg PO 2-3x daily<br>ISMN: 30–120 mg PO daily", notes: "Requires a 10-12 hr nitrate-free interval." },
+      { id: "c22", cat: "cvs", badge: "Statin", badgeColor: "bg-teal-100 text-teal-800", title: "Atorvastatin / Rosuvastatin", class: "HMG-CoA Reductase Inhibitor", dose: "Atorvastatin: 10–80 mg PO daily<br>Rosuvastatin: 5–40 mg PO daily", notes: "Administer 80mg Atorvastatin immediately in ACS/Stroke." },
+
+      // 2. Antiplatelets, Anticoagulants & Fibrinolytics
+      { id: "h1", cat: "hema", badge: "Antiplatelet", badgeColor: "bg-red-100 text-red-800", title: "Aspirin (ASA)", class: "COX-1 Antiplatelet", dose: "ACS Load: 160–325 mg PO chewed<br>Maint: 75–100 mg PO daily", notes: "Irreversible platelet inhibition for 7-10 days." },
+      { id: "h2", cat: "hema", badge: "Antiplatelet", badgeColor: "bg-red-100 text-red-800", title: "Clopidogrel (Plavix)", class: "P2Y12 Inhibitor", dose: "ACS Load: 300–600 mg PO<br>Maint: 75 mg PO daily", notes: "Discontinue 5-7 days prior to high-risk surgery." },
+      { id: "h3", cat: "hema", badge: "Antiplatelet", badgeColor: "bg-red-100 text-red-800", title: "Ticagrelor (Brilinta)", class: "Reversible P2Y12 Inhibitor", dose: "Load: 180 mg PO<br>Maint: 90 mg PO BID", notes: "Keep maint Aspirin ≤ 100 mg/day. May cause dyspnea." },
+      { id: "h4", cat: "hema", badge: "Anticoagulant", badgeColor: "bg-rose-200 text-rose-900", title: "Warfarin (Coumadin)", class: "Vitamin K Antagonist", dose: "Initial: 2–5 mg PO daily<br>Maint: Titrate to INR 2.0-3.0", notes: "Bridge with Heparin/LMWH when initiating for acute VTE." },
+      { id: "h5", cat: "hema", badge: "DOAC", badgeColor: "bg-rose-200 text-rose-900", title: "Apixaban (Eliquis)", class: "Factor Xa Inhibitor", dose: "AFib: 5 mg PO BID (2.5mg if indicated)<br>Acute VTE: 10 mg BID x 7 days, then 5 mg BID", notes: "Safest in moderate-to-severe renal impairment." },
+      { id: "h6", cat: "hema", badge: "DOAC", badgeColor: "bg-rose-200 text-rose-900", title: "Rivaroxaban (Xarelto)", class: "Factor Xa Inhibitor", dose: "AFib: 20 mg PO daily w/ dinner<br>Acute VTE: 15 mg BID x 21 days, then 20 mg daily", notes: "Doses ≥15mg must be taken with food for absorption." },
+      { id: "h7", cat: "hema", badge: "Fibrinolytic", badgeColor: "bg-purple-200 text-purple-900", title: "Alteplase (tPA)", class: "Tissue Plasminogen Activator", dose: "Stroke: 0.9 mg/kg IV (max 90mg)<br>Massive PE: 100 mg IV over 2 hrs", notes: "Strictly verify BP < 185/110 mmHg before acute stroke admin." },
+
+      // 3. Respiratory & COPD
+      { id: "r1", cat: "resp", badge: "Inhaler/Neb", badgeColor: "bg-sky-100 text-sky-700", title: "Salbutamol (Albuterol)", class: "SABA", dose: "Neb: 2.5–5 mg q20min x3<br>MDI: 2 puffs q4-6h", notes: "Acute bronchospasm." },
+      { id: "r2", cat: "resp", badge: "Inhaler/Neb", badgeColor: "bg-sky-100 text-sky-700", title: "Ipratropium Bromide", class: "SAMA", dose: "Neb: 500 mcg q20min x3<br>MDI: 2-4 puffs q6h", notes: "Used with SABA in acute exacerbations." },
+      { id: "r3", cat: "resp", badge: "Inhaler", badgeColor: "bg-sky-100 text-sky-700", title: "Tiotropium (Spiriva)", class: "LAMA", dose: "HandiHaler: 18 mcg once daily<br>Respimat: 2.5 mcg/puff, 2 puffs daily", notes: "Maintenance COPD/Asthma therapy." },
+      { id: "r4", cat: "resp", badge: "Steroid", badgeColor: "bg-indigo-100 text-indigo-700", title: "Budesonide", class: "ICS", dose: "Neb: 0.5–1 mg BID<br>Turbuhaler: 200–400 mcg BID", notes: "Inhaled corticosteroid." },
+      { id: "r5", cat: "resp", badge: "Combo Inhaler", badgeColor: "bg-sky-100 text-sky-700", title: "Symbicort (Budesonide/Formoterol)", class: "ICS + LABA", dose: "160/4.5 mcg: 1-2 puffs BID", notes: "Used as MART (Maint and Reliever Therapy), max 12 puffs/day." },
+      { id: "r6", cat: "resp", badge: "Combo Inhaler", badgeColor: "bg-sky-100 text-sky-700", title: "Seretide (Fluticasone/Salmeterol)", class: "ICS + LABA", dose: "Diskus: 1 inhalation BID", notes: "Rinse mouth after use to prevent candidiasis." },
+      { id: "r7", cat: "resp", badge: "Systemic", badgeColor: "bg-amber-100 text-amber-700", title: "Aminophylline", class: "Methylxanthine", dose: "IV Load: 5-6 mg/kg IV over 20 min<br>Maint: 0.5 mg/kg/hr", notes: "Narrow therapeutic index (10-20 mcg/mL)." },
+      { id: "r8", cat: "resp", badge: "PO", badgeColor: "bg-slate-100 text-slate-700", title: "Montelukast (Singulair)", class: "Leukotriene Antagonist", dose: "10 mg PO once daily in evening", notes: "Asthma maintenance / allergic rhinitis." },
+      { id: "r9", cat: "resp", badge: "Mucolytic", badgeColor: "bg-teal-100 text-teal-700", title: "N-Acetylcysteine (NAC)", class: "Mucolytic", dose: "600 mg PO daily, or 200 mg PO TID", notes: "Also used in paracetamol overdose IV." },
+      { id: "r10", cat: "resp", badge: "Mucolytic", badgeColor: "bg-teal-100 text-teal-700", title: "Bromhexine / Ambroxol", class: "Mucolytic", dose: "Bromhexine: 8-16 mg PO TID<br>Ambroxol: 30 mg PO 2-3x daily", notes: "Expectorant." },
+
+      // 4. Endocrine, Diabetes & Systemic Corticosteroids
+      { id: "e1", cat: "endo", badge: "Insulin", badgeColor: "bg-sky-100 text-sky-700", title: "Lispro / Aspart", class: "Rapid-Acting Insulin", dose: "Mealtime: 4–6 units SC (or 0.1-0.2 u/kg) right before meals", notes: "Administer only when meal tray is present." },
+      { id: "e2", cat: "endo", badge: "Insulin", badgeColor: "bg-sky-100 text-sky-700", title: "Regular Insulin", class: "Short-Acting Insulin", dose: "SC: 30 min pre-meal<br>DKA Infusion: 0.1 units/kg/hr IV", notes: "DKA: Verify K+ ≥3.3. Add D5W when BG reaches 200-250." },
+      { id: "e3", cat: "endo", badge: "Insulin", badgeColor: "bg-sky-100 text-sky-700", title: "NPH Insulin", class: "Intermediate Insulin", dose: "Total dose (0.5-0.8 u/kg/day) split 2/3 AM and 1/3 PM", notes: "Cloudy suspension. Never administer IV." },
+      { id: "e4", cat: "endo", badge: "Insulin", badgeColor: "bg-sky-100 text-sky-700", title: "Glargine / Detemir", class: "Long-Acting Basal", dose: "Initial: 10 units SC daily (or 0.2 u/kg) at bedtime", notes: "Continue SC basal in DKA alongside IV insulin." },
+      { id: "e5", cat: "endo", badge: "PO DM", badgeColor: "bg-indigo-100 text-indigo-700", title: "Metformin", class: "Biguanide", dose: "Initial: 500 mg PO daily/BID (Max 2000-2550 mg/day)", notes: "Hold 48h around IV contrast. Avoid if eGFR < 30." },
+      { id: "e6", cat: "endo", badge: "PO DM", badgeColor: "bg-indigo-100 text-indigo-700", title: "Empagliflozin / Dapagliflozin", class: "SGLT2 Inhibitor", dose: "10–25 mg PO once daily", notes: "Indicated in T2DM, HFrEF, CKD. Hold 3-4 days pre-op." },
+      { id: "e7", cat: "endo", badge: "PO DM", badgeColor: "bg-indigo-100 text-indigo-700", title: "Sitagliptin / Linagliptin", class: "DPP-4 Inhibitor", dose: "Sitagliptin: 100 mg PO daily (adjust for Cr)<br>Linagliptin: 5 mg PO daily", notes: "Linagliptin requires NO renal dose adjustment." },
+      { id: "e8", cat: "endo", badge: "SC DM", badgeColor: "bg-purple-100 text-purple-700", title: "Semaglutide / Liraglutide", class: "GLP-1 Agonist", dose: "Semaglutide: 0.25-2 mg SC weekly<br>Liraglutide: 0.6-1.8 mg SC daily", notes: "Promotes weight loss. Avoid in medullary thyroid CA hx." },
+      { id: "e9", cat: "endo", badge: "PO DM", badgeColor: "bg-indigo-100 text-indigo-700", title: "Glimepiride / Gliclazide", class: "Sulfonylurea", dose: "Glimepiride: 1-8 mg PO daily<br>Gliclazide MR: 30-120 mg PO daily", notes: "High risk of hypoglycemia in elderly/renal failure." },
+      { id: "e10", cat: "endo", badge: "Thyroid", badgeColor: "bg-amber-100 text-amber-700", title: "Levothyroxine", class: "Thyroid Hormone", dose: "PO: 1.6 mcg/kg/day (empty stomach)<br>Myxedema IV: 200-400 mcg load", notes: "Give IV Hydrocortisone before IV Levo in myxedema." },
+      { id: "e11", cat: "endo", badge: "Thyroid", badgeColor: "bg-amber-100 text-amber-700", title: "Carbimazole / Methimazole", class: "Anti-Thyroid", dose: "Initial: 15–40 mg PO daily<br>Maint: 5-15 mg PO daily", notes: "Stop and check CBC if sore throat/fever (agranulocytosis)." },
+      { id: "e12", cat: "endo", badge: "Thyroid", badgeColor: "bg-amber-100 text-amber-700", title: "Propylthiouracil (PTU)", class: "Anti-Thyroid", dose: "Thyroid Storm: 500-1000 mg PO/NG load, then 250mg q4h", notes: "Preferred in 1st trimester of pregnancy." },
+      { id: "e13", cat: "endo", badge: "Steroid", badgeColor: "bg-rose-100 text-rose-700", title: "Hydrocortisone", class: "Corticosteroid", dose: "Stress/Shock: 50-100 mg IV q6-8h", notes: "High mineralocorticoid potency (1.0). Short half-life." },
+      { id: "e14", cat: "endo", badge: "Steroid", badgeColor: "bg-rose-100 text-rose-700", title: "Prednisolone", class: "Corticosteroid", dose: "Asthma/COPD: 40-60 mg PO daily<br>Autoimmune: 0.5-1 mg/kg/day", notes: "5mg Prednisolone = 20mg Hydrocortisone." },
+      { id: "e15", cat: "endo", badge: "Steroid", badgeColor: "bg-rose-100 text-rose-700", title: "Methylprednisolone", class: "Corticosteroid", dose: "COPD: 40-125 mg IV q6-12h<br>Pulse: 500-1000 mg IV daily", notes: "Minimal mineralocorticoid effect." },
+      { id: "e16", cat: "endo", badge: "Steroid", badgeColor: "bg-rose-100 text-rose-700", title: "Dexamethasone", class: "Corticosteroid", dose: "Anaphylaxis/Croup: 4-8 mg IV/IM q6-12h", notes: "Zero mineralocorticoid activity. Long acting." },
+
+      // 5. Gastrointestinal & Hepatology
+      { id: "g1", cat: "gi", badge: "PPI", badgeColor: "bg-amber-100 text-amber-700", title: "Pantoprazole / Omeprazole", class: "Proton Pump Inhibitor", dose: "GERD: 20-40 mg PO/IV daily<br>GI Bleed: 80 mg IV bolus, then 8 mg/hr", notes: "Take 30 min before breakfast." },
+      { id: "g2", cat: "gi", badge: "Hepato", badgeColor: "bg-orange-100 text-orange-800", title: "Octreotide", class: "Somatostatin Analog", dose: "Variceal Bleed: 50 mcg IV bolus, then 50 mcg/hr x 3-5 days", notes: "Splanchnic vasoconstrictor." },
+      { id: "g3", cat: "gi", badge: "Hepato", badgeColor: "bg-orange-100 text-orange-800", title: "Terlipressin", class: "Vasopressin Analog", dose: "Variceal Bleed: 2 mg IV q4h<br>Hepatorenal: 1 mg IV q4-6h", notes: "Give alongside IV Human Albumin for HRS." },
+      { id: "g4", cat: "gi", badge: "Fluid", badgeColor: "bg-blue-100 text-blue-800", title: "Human Albumin (20%)", class: "Colloid", dose: "Paracentesis: 6-8g per Liter removed<br>SBP: 1.5 g/kg Day 1, 1 g/kg Day 3", notes: "Prevents circulatory dysfunction." },
+      { id: "g5", cat: "gi", badge: "Antispasmodic", badgeColor: "bg-emerald-100 text-emerald-800", title: "Hyoscine Butylbromide (Buscopan)", class: "Antimuscarinic", dose: "10–20 mg IV/IM/PO 3-4x daily", notes: "Used for biliary, renal, or intestinal colic." },
+      { id: "g6", cat: "gi", badge: "Antispasmodic", badgeColor: "bg-emerald-100 text-emerald-800", title: "Mebeverine (Duspatalin)", class: "GI Antispasmodic", dose: "135 mg PO TID or 200 mg ER BID", notes: "Take 20 mins before meals for IBS." },
+      { id: "g7", cat: "gi", badge: "Antidiarrheal", badgeColor: "bg-stone-200 text-stone-800", title: "Loperamide (Imodium)", class: "Opioid-Receptor Agonist", dose: "Initial: 4 mg PO, then 2 mg after each loose stool (Max 16mg/d)", notes: "Avoid in bloody diarrhea or C. diff." },
+      { id: "g8", cat: "gi", badge: "Prokinetic", badgeColor: "bg-sky-100 text-sky-800", title: "Domperidone (Motilium)", class: "Antiemetic", dose: "10 mg PO TID before meals", notes: "Does not cross BBB (safe in Parkinson's); monitor QTc." },
+      { id: "g9", cat: "gi", badge: "5-ASA", badgeColor: "bg-purple-100 text-purple-800", title: "Mesalazine (Pentasa)", class: "Aminosalicylate", dose: "Active UC: 2.4-4.8 g/day PO<br>Maint: 1.5-2.4 g/day PO", notes: "Add rectal suppository for distal disease." },
+      { id: "g10", cat: "gi", badge: "Hepato", badgeColor: "bg-orange-100 text-orange-800", title: "Ursodeoxycholic Acid", class: "Bile Acid", dose: "Cholestasis/PBC: 13-15 mg/kg/day PO divided", notes: "Administer with food." },
+
+      // 6. Allergy, Anaphylaxis, Rheumatology & Gout
+      { id: "im1", cat: "immune", badge: "Antihistamine", badgeColor: "bg-fuchsia-100 text-fuchsia-800", title: "Chlorpheniramine", class: "1st-Gen H1 Blocker", dose: "Anaphylaxis Adjunct: 10 mg slow IV/IM<br>PO: 4 mg q4-6h", notes: "Causes sedation." },
+      { id: "im2", cat: "immune", badge: "Antihistamine", badgeColor: "bg-fuchsia-100 text-fuchsia-800", title: "Diphenhydramine", class: "1st-Gen H1 Blocker", dose: "25-50 mg IV/IM/PO q6-8h", notes: "Used for acute dystonia/EPS (50mg IV)." },
+      { id: "im3", cat: "immune", badge: "Antihistamine", badgeColor: "bg-pink-100 text-pink-800", title: "Cetirizine / Loratadine", class: "2nd-Gen H1 Blocker", dose: "Cetirizine/Loratadine: 10 mg PO daily<br>Fexofenadine: 120-180 mg daily", notes: "Minimal sedation." },
+      { id: "im4", cat: "immune", badge: "Gout", badgeColor: "bg-rose-100 text-rose-800", title: "Colchicine", class: "Anti-inflammatory", dose: "Acute Flare: 1.2 mg PO, then 0.6 mg 1hr later<br>Prophylaxis: 0.5-0.6 mg PO daily/BID", notes: "Do not repeat acute course for 3 days." },
+      { id: "im5", cat: "immune", badge: "Gout", badgeColor: "bg-rose-100 text-rose-800", title: "Allopurinol / Febuxostat", class: "Xanthine Oxidase Inhibitor", dose: "Allopurinol: 100-300 mg PO daily<br>Febuxostat: 40-80 mg PO daily", notes: "Do not initiate de novo during an unmedicated acute flare." },
+      { id: "im6", cat: "immune", badge: "NSAID", badgeColor: "bg-amber-100 text-amber-800", title: "Naproxen / Ibuprofen", class: "Non-Selective NSAID", dose: "Naproxen: 250-500 mg PO BID<br>Ibuprofen: 400-600 mg PO q6-8h", notes: "Take with food." },
+      { id: "im7", cat: "immune", badge: "NSAID", badgeColor: "bg-amber-100 text-amber-800", title: "Celecoxib", class: "COX-2 Inhibitor", dose: "100-200 mg PO daily/BID", notes: "Lower GI ulcer risk; avoid in ischemic heart disease." },
+      { id: "im8", cat: "immune", badge: "DMARD", badgeColor: "bg-indigo-100 text-indigo-800", title: "Methotrexate", class: "Antimetabolite", dose: "7.5-25 mg PO/SC ONCE WEEKLY", notes: "Never daily. Co-prescribe Folic Acid 5mg weekly (24h later)." },
+
+      // 7. Urology, Nephrology & Hematology
+      { id: "u1", cat: "uro", badge: "Urology", badgeColor: "bg-teal-100 text-teal-800", title: "Tamsulosin", class: "α1A Blocker", dose: "0.4 mg PO once daily (30 min after same meal)", notes: "BPH & ureteric stone expulsion." },
+      { id: "u2", cat: "uro", badge: "Urology", badgeColor: "bg-teal-100 text-teal-800", title: "Finasteride / Dutasteride", class: "5α-Reductase Inhibitor", dose: "Finasteride: 5 mg PO daily<br>Dutasteride: 0.5 mg PO daily", notes: "Reduces prostate volume; halves PSA." },
+      { id: "u3", cat: "uro", badge: "Urology", badgeColor: "bg-teal-100 text-teal-800", title: "Oxybutynin / Solifenacin", class: "Antimuscarinic", dose: "Oxybutynin: 5 mg PO 2-3x daily<br>Solifenacin: 5-10 mg PO daily", notes: "Overactive bladder / detrusor instability." },
+      { id: "u4", cat: "uro", badge: "Nephro", badgeColor: "bg-blue-100 text-blue-800", title: "Sodium Bicarbonate 8.4%", class: "Alkalinizing Agent", dose: "Severe Acidosis: 50-100 mEq IV push<br>CKD: 650-1300 mg PO 2-3x daily", notes: "Target serum HCO3 ≥ 22." },
+      { id: "u5", cat: "uro", badge: "Nephro", badgeColor: "bg-blue-100 text-blue-800", title: "Calcium Polystyrene (Kayexalate)", class: "Potassium Binder", dose: "15-30 g PO (or 30-60g enema) 1-4x daily", notes: "Treats hyperkalemia." },
+      { id: "u6", cat: "uro", badge: "Hema", badgeColor: "bg-red-100 text-red-800", title: "Erythropoietin (Epoetin Alfa)", class: "ESA", dose: "CKD Anemia: 50-100 units/kg SC 3x weekly", notes: "Target Hb 10-11.5. Do not exceed 12." },
+      { id: "u7", cat: "uro", badge: "Hema", badgeColor: "bg-red-100 text-red-800", title: "Ferrous Sulfate", class: "Oral Iron", dose: "325 mg (65mg elemental) PO daily/alternate days", notes: "Take with Vit C on empty stomach." },
+      { id: "u8", cat: "uro", badge: "Hema", badgeColor: "bg-red-100 text-red-800", title: "Iron Sucrose / Ferric Carboxymaltose", class: "IV Iron", dose: "Sucrose: 200 mg IV over 30-60m<br>FCM: 500-1000 mg IV over 15m", notes: "Replace total calculated deficit." },
+      { id: "u9", cat: "uro", badge: "Hema", badgeColor: "bg-red-100 text-red-800", title: "Vitamin B12 & Folic Acid", class: "Hematinic", dose: "B12: 1mg IM daily x7, then weekly, then monthly<br>Folic Acid: 1-5 mg PO daily", notes: "Exclude B12 def before giving Folate." },
+
+      // 8. Misc, Psych, Tox & OB
+      { id: "t1", cat: "tox", badge: "Ob/Gyn", badgeColor: "bg-pink-100 text-pink-800", title: "Oxytocin (Syntocinon)", class: "Uterotonic", dose: "PPH Proph: 10 IU IM or 5 IU IV<br>Treatment: 20-40 IU in 1L NS at 125-250 mL/hr", notes: "Active 3rd stage management." },
+      { id: "t2", cat: "tox", badge: "Ob/Gyn", badgeColor: "bg-pink-100 text-pink-800", title: "Misoprostol / Methergine", class: "Uterotonic", dose: "Misoprostol: 600-800 mcg SL/PR<br>Methergine: 0.2 mg IM q2-4h", notes: "Methergine contraindicated in pre-eclampsia." },
+      { id: "t3", cat: "tox", badge: "Psych", badgeColor: "bg-indigo-100 text-indigo-800", title: "Haloperidol", class: "Typical Antipsychotic", dose: "Agitation: 2.5-5 mg IM/IV/PO", notes: "Check ECG for QTc. Avoid in Parkinson's." },
+      { id: "t4", cat: "tox", badge: "Psych", badgeColor: "bg-indigo-100 text-indigo-800", title: "Olanzapine / Quetiapine", class: "Atypical Antipsychotic", dose: "Olanzapine: 5-10 mg IM/PO<br>Quetiapine: 12.5-25 mg PO (elderly)", notes: "Never give IM Olanzapine within 1h of IM Benzos." },
+      { id: "t5", cat: "tox", badge: "Psych", badgeColor: "bg-indigo-100 text-indigo-800", title: "Escitalopram / Sertraline", class: "SSRI", dose: "Escitalopram: 10-20 mg PO daily<br>Sertraline: 50-200 mg PO daily", notes: "Sertraline is safest in post-MI patients." },
+      { id: "t6", cat: "tox", badge: "Tox", badgeColor: "bg-slate-800 text-white", title: "Naloxone / Flumazenil", class: "Antidotes", dose: "Naloxone (Opioids): 0.4-2 mg IV<br>Flumazenil (Benzos): 0.2 mg IV", notes: "Flumazenil contraindicated in TCA co-ingestion." },
+      { id: "t7", cat: "tox", badge: "Tox", badgeColor: "bg-slate-800 text-white", title: "NAC (IV Protocol)", class: "Antidote", dose: "Paracetamol OD: 150mg/kg over 1h, 50mg/kg over 4h, 100mg/kg over 16h", notes: "21-Hour 3-Bag Protocol." },
+      { id: "t8", cat: "tox", badge: "Tox", badgeColor: "bg-slate-800 text-white", title: "Atropine + Pralidoxime", class: "Antidote", dose: "Atropine: Double dose q5m until clear lungs<br>2-PAM: 1-2g IV over 15m", notes: "Organophosphate/Carbamate poisoning." },
+      { id: "t9", cat: "tox", badge: "Tox", badgeColor: "bg-slate-800 text-white", title: "Glucagon + High-Dose Insulin", class: "Antidote", dose: "Beta-Blocker OD: Glucagon 3-5mg IV, Insulin 1 u/kg bolus + Dextrose", notes: "High-Dose Insulin Euglycemia therapy." },
+      { id: "t10", cat: "tox", badge: "Tox", badgeColor: "bg-slate-800 text-white", title: "Intralipid / Digibind", class: "Antidote", dose: "Intralipid 20%: 1.5 mL/kg IV bolus<br>Digibind: 10-20 vials IV", notes: "LAST & Digoxin toxicity respectively." },
+
+      // 9. Antibiotics (IV & PO)
+      { id: "ab_1", cat: "antibiotics", sub: "iv", badge: "IV Abx", badgeColor: "bg-emerald-100 text-emerald-700", title: "Ceftriaxone", adult: "1–2 g IV q24h<br>Meningitis: 2 g IV q12h", peds: "50–75 mg/kg/day<br>Meningitis: 100 mg/kg/day div q12h" },
+      { id: "ab_2", cat: "antibiotics", sub: "iv", badge: "IV Abx", badgeColor: "bg-emerald-100 text-emerald-700", title: "Cefotaxime", adult: "2 g IV q6–8h<br>Meningitis: 2 g IV q4–6h", peds: "150–200 mg/kg/day div q6–8h" },
+      { id: "ab_3", cat: "antibiotics", sub: "iv", badge: "IV Abx", badgeColor: "bg-emerald-100 text-emerald-700", title: "Cefazolin / Cefepime", adult: "Cefazolin: 2 g IV q8h<br>Cefepime: 2 g IV q8-12h", peds: "Cefazolin: 25-50 mg/kg/day<br>Cefepime: 50 mg/kg IV q8-12h" },
+      { id: "ab_4", cat: "antibiotics", sub: "iv", badge: "IV Abx", badgeColor: "bg-emerald-100 text-emerald-700", title: "Ceftazidime", adult: "2 g IV q8h", peds: "100–150 mg/kg/day div q8h" },
+      { id: "ab_5", cat: "antibiotics", sub: "iv", badge: "IV Abx", badgeColor: "bg-emerald-100 text-emerald-700", title: "Vancomycin", adult: "15–20 mg/kg IV q8–12h", peds: "15 mg/kg IV q6h commonly" },
+      { id: "ab_6", cat: "antibiotics", sub: "iv", badge: "IV Abx", badgeColor: "bg-emerald-100 text-emerald-700", title: "Metronidazole", adult: "500 mg IV q8h", peds: "7.5–10 mg/kg IV q8h" },
+      { id: "ab_7", cat: "antibiotics", sub: "iv", badge: "IV Abx", badgeColor: "bg-emerald-100 text-emerald-700", title: "Meropenem", adult: "1 g IV q8h<br>Meningitis: 2 g IV q8h", peds: "20 mg/kg IV q8h<br>Meningitis: 40 mg/kg IV q8h" },
+      { id: "ab_8", cat: "antibiotics", sub: "iv", badge: "IV Abx", badgeColor: "bg-emerald-100 text-emerald-700", title: "Pip/Tazo & Ampicillin", adult: "Pip/Tazo: 4.5 g IV q6-8h<br>Ampicillin: 2 g IV q4-6h", peds: "Pip/Tazo: 80-100 mg/kg q6-8h<br>Ampicillin: 50-100 mg/kg div q6h" },
+      { id: "ab_9", cat: "antibiotics", sub: "iv", badge: "IV Abx", badgeColor: "bg-emerald-100 text-emerald-700", title: "Amikacin / Gentamicin", adult: "Amikacin: 15-20 mg/kg/day IV<br>Gentamicin: 5-7 mg/kg IV q24h", peds: "Amikacin: 15-22.5 mg/kg/day<br>Gentamicin: ~5-7.5 mg/kg/day" },
+      { id: "ab_10", cat: "antibiotics", sub: "iv", badge: "IV Abx", badgeColor: "bg-emerald-100 text-emerald-700", title: "Clindamycin / Linezolid", adult: "Clindamycin: 600-900 mg IV q8h<br>Linezolid: 600 mg IV q12h", peds: "Clindamycin: 10-13 mg/kg q8h<br>Linezolid: 10 mg/kg q8h (<12yr)" },
+
+      { id: "ab_p1", cat: "antibiotics", sub: "oral", badge: "PO Abx", badgeColor: "bg-teal-100 text-teal-800", title: "Amoxicillin / Augmentin", dose: "Amoxil: 500-1000 mg q8h<br>Augmentin: 625 mg q8h or 875/125 mg q12h" },
+      { id: "ab_p2", cat: "antibiotics", sub: "oral", badge: "PO Abx", badgeColor: "bg-teal-100 text-teal-800", title: "Cephalosporins (PO)", dose: "Cephalexin: 500 mg q6h<br>Cefuroxime: 250-500 mg q12h<br>Cefixime: 400 mg daily" },
+      { id: "ab_p3", cat: "antibiotics", sub: "oral", badge: "PO Abx", badgeColor: "bg-teal-100 text-teal-800", title: "Macrolides", dose: "Azithromycin: 500 mg daily<br>Clarithromycin: 500 mg q12h" },
+      { id: "ab_p4", cat: "antibiotics", sub: "oral", badge: "PO Abx", badgeColor: "bg-teal-100 text-teal-800", title: "Fluoroquinolones", dose: "Ciprofloxacin: 500 mg q12h<br>Levofloxacin: 500-750 mg daily<br>Moxifloxacin: 400 mg daily" },
+      { id: "ab_p5", cat: "antibiotics", sub: "oral", badge: "PO Abx", badgeColor: "bg-teal-100 text-teal-800", title: "Doxycycline / Clindamycin / Flagyl", dose: "Doxycycline: 100 mg q12h<br>Clindamycin: 300-450 mg q6-8h<br>Metronidazole: 500 mg q8-12h" },
+      { id: "ab_p6", cat: "antibiotics", sub: "oral", badge: "PO Abx", badgeColor: "bg-teal-100 text-teal-800", title: "Misc PO Abx", dose: "TMP-SMX (Bactrim): 1 DS tab q12h<br>Linezolid: 600 mg q12h<br>Nitrofurantoin: 100 mg q12h" },
+
+      // 10. Analgesia & Pain Management
+      { id: "an1", cat: "analgesia", badge: "Non-Opioid", badgeColor: "bg-emerald-100 text-emerald-800", title: "Paracetamol (Acetaminophen)", class: "Analgesic / Antipyretic", dose: "PO/IV: 1000 mg q6h (Max 4g/day)", notes: "Reduce dose in hepatic impairment or weight < 50kg." },
+      { id: "an2", cat: "analgesia", badge: "NSAID", badgeColor: "bg-amber-100 text-amber-800", title: "Ketorolac (Toradol)", class: "Non-Selective NSAID", dose: "IV/IM: 15-30 mg q6h (Max 120mg/day)", notes: "Max duration 5 days. Adjust for age >65 or renal impairment." },
+      { id: "an3", cat: "analgesia", badge: "NSAID", badgeColor: "bg-amber-100 text-amber-800", title: "Diclofenac", class: "Non-Selective NSAID", dose: "PO/IM: 50-75 mg q8-12h (Max 150mg/day)", notes: "Avoid in severe heart failure or ischemic heart disease." },
+      { id: "an4", cat: "analgesia", badge: "Opioid", badgeColor: "bg-rose-100 text-rose-800", title: "Morphine", class: "Opioid Agonist", dose: "IV: 2-5 mg q5-15min PRN (titrate to effect)<br>PO: 10-30 mg q4h PRN", notes: "Histamine release may cause hypotension/itching. Renally cleared." },
+      { id: "an5", cat: "analgesia", badge: "Opioid", badgeColor: "bg-rose-100 text-rose-800", title: "Fentanyl", class: "Synthetic Opioid", dose: "IV: 25-50 mcg q5-10min PRN<br>IN (Intranasal): 1-2 mcg/kg", notes: "Preferred in renal failure and hemodynamic instability. No histamine release." },
+      { id: "an6", cat: "analgesia", badge: "Opioid", badgeColor: "bg-rose-100 text-rose-800", title: "Tramadol", class: "Atypical Opioid / SNRI", dose: "IV/PO: 50-100 mg q6h (Max 400mg/day)", notes: "Lowers seizure threshold. High risk of Serotonin Syndrome with SSRIs." },
+      { id: "an7", cat: "analgesia", badge: "Adjuvant", badgeColor: "bg-purple-100 text-purple-800", title: "Ketamine (Analgesic)", class: "NMDA Antagonist", dose: "IV: 0.1-0.3 mg/kg (sub-dissociative dose)", notes: "Excellent adjunct for opioid-sparing analgesia." },
+      { id: "an8", cat: "analgesia", badge: "Adjuvant", badgeColor: "bg-sky-100 text-sky-800", title: "Pregabalin / Gabapentin", class: "Gabapentinoid", dose: "Pregabalin: 75-150 mg PO BID<br>Gabapentin: 300 mg PO TID", notes: "First-line for neuropathic pain. Renally dosed." },
+
+      // 11. IV Fluids & Resuscitation
+      { id: "fl1", cat: "fluids", badge: "Isotonic", badgeColor: "bg-cyan-100 text-cyan-800", title: "Normal Saline 0.9% (NS)", class: "Crystalloid", dose: "Bolus: 500-1000 mL IV<br>Maint: 75-125 mL/hr", notes: "May cause hyperchloremic non-anion gap metabolic acidosis in large volumes." },
+      { id: "fl2", cat: "fluids", badge: "Isotonic", badgeColor: "bg-cyan-100 text-cyan-800", title: "Ringer's Lactate (LR)", class: "Crystalloid", dose: "Bolus: 500-1000 mL IV<br>Maint: 75-125 mL/hr", notes: "Preferred balanced crystalloid in trauma, surgery, and burns. Contains K+ (4 mEq/L)." },
+      { id: "fl3", cat: "fluids", badge: "Hypotonic", badgeColor: "bg-indigo-100 text-indigo-800", title: "Half Normal Saline (0.45% NaCl)", class: "Crystalloid", dose: "Maint: 75-125 mL/hr", notes: "Free water provision. Used in DKA maintenance and hypernatremia." },
+      { id: "fl4", cat: "fluids", badge: "Hypotonic", badgeColor: "bg-indigo-100 text-indigo-800", title: "Dextrose 5% in Water (D5W)", class: "Crystalloid", dose: "Maint: 75-100 mL/hr", notes: "Provides free water. Strictly avoid in acute neuro injury / raised ICP." },
+      { id: "fl5", cat: "fluids", badge: "Hypertonic", badgeColor: "bg-purple-100 text-purple-800", title: "Hypertonic Saline 3%", class: "Crystalloid", dose: "ICP / Severe Hyponatremia: 150-250 mL IV bolus", notes: "Must administer through secure IV access. Monitor serum Na+ frequently." },
+      { id: "fl6", cat: "fluids", badge: "Dextrose", badgeColor: "bg-amber-100 text-amber-800", title: "Dextrose 50% (D50)", class: "Hyperosmolar", dose: "Severe Hypoglycemia: 50 mL IV push (contains 25g glucose)", notes: "Vesicant. Follow up with D10W infusion or complex carbs PO to prevent rebound." },
+      { id: "fl7", cat: "fluids", badge: "Colloid", badgeColor: "bg-orange-100 text-orange-800", title: "Human Albumin 5% / 20%", class: "Colloid", dose: "5%: Volume expansion (250-500 mL)<br>20%: Paracentesis replacement (6-8g / L removed)", notes: "Expensive, use reserved for specific indications (SBP, HRS, large volume paracentesis)." }
+    ];
+
+    const protos = [
+      { 
+        id: "p1", cat: "med", badge: "Endocrine ER", badgeColor: "bg-indigo-100 text-indigo-700", t: "🏥 Diabetic Ketoacidosis (DKA) & HHS", 
+        b: `<div class="space-y-1.5">
+              <div class="bg-blue-50 p-2 rounded border border-blue-100"><b class="text-blue-800 block mb-0.5">1. Fluids (Volume Resuscitation):</b> 0.9% NS at 1000 mL/hr for the 1st hour. Then 250-500 mL/hr depending on hydration. Switch to D5W-0.45% NS when Blood Glucose drops below 250 mg/dL (14 mmol/L).</div>
+              <div class="bg-amber-50 p-2 rounded border border-amber-100"><b class="text-amber-800 block mb-0.5">2. Potassium (Check BEFORE Insulin):</b><br>• If K+ &lt; 3.3: HOLD insulin. Give 20-30 mEq K+/hr until K+ > 3.3.<br>• If K+ 3.3-5.3: Add 20-30 mEq K+ to each liter of IV fluid.<br>• If K+ > 5.3: Do not add K+, check every 2 hrs.</div>
+              <div class="bg-emerald-50 p-2 rounded border border-emerald-100"><b class="text-emerald-800 block mb-0.5">3. Insulin Infusion:</b> Regular Insulin 0.1 units/kg IV bolus, followed by 0.1 units/kg/hr IV infusion. Maintain infusion until anion gap closes (≤ 12).</div>
+              <div class="bg-slate-50 p-2 rounded border border-slate-200"><b class="text-slate-800 block mb-0.5">4. Bicarbonate:</b> Only indicated if pH &lt; 6.9. Give 100 mEq NaHCO3 in 400 mL H2O + 20 mEq KCl over 2 hrs.</div>
+            </div>` 
+      },
+      { 
+        id: "p2", cat: "med", badge: "Cardiology ER", badgeColor: "bg-rose-100 text-rose-700", t: "🫁 Acute Pulmonary Edema (Cardiogenic)", 
+        b: `<div class="space-y-1.5">
+              <div class="bg-sky-50 p-2 rounded border border-sky-100"><b class="text-sky-800 block mb-0.5">O - Oxygen & Airway:</b> Sit patient upright. Apply CPAP/BiPAP early (reduces work of breathing & preload). Intubate if failing NIPPV.</div>
+              <div class="bg-rose-50 p-2 rounded border border-rose-100"><b class="text-rose-800 block mb-0.5">N - Nitroglycerin:</b> SL 0.4mg q5min x 3 doses. Transition to IV Nitroglycerin infusion (10-200 mcg/min) if BP > 110 mmHg. (Rapidly reduces preload).</div>
+              <div class="bg-blue-50 p-2 rounded border border-blue-100"><b class="text-blue-800 block mb-0.5">L - Lasix (Furosemide):</b> 40-80 mg IV (or 1 to 2.5x the patient's daily home oral dose). Reassess urine output in 30-60 mins.</div>
+              <div class="bg-purple-50 p-2 rounded border border-purple-100"><b class="text-purple-800 block mb-0.5">M - Morphine:</b> (Cautious use) 2-4 mg IV for severe dyspnea/anxiety. Avoid if hypotensive or tired.</div>
+              <div class="bg-amber-50 p-2 rounded border border-amber-100"><b class="text-amber-800 block mb-0.5">P - Pressure/Position:</b> If hypotensive (Cardiogenic Shock), stop Nitrates immediately. Consider Dobutamine or Norepinephrine infusion.</div>
+            </div>` 
+      },
+      { 
+        id: "p3", cat: "med", badge: "Cardiology ER", badgeColor: "bg-rose-100 text-rose-700", t: "❤️ Acute Coronary Syndrome (STEMI / NSTEMI)", 
+        b: `<div class="space-y-1.5">
+              <div class="bg-slate-50 p-2 rounded border border-slate-200"><b class="text-slate-800 block mb-0.5">1. Initial Meds (MONA-B):</b><br>• <b>Aspirin</b> 325mg PO chewed.<br>• <b>Nitroglycerin</b> SL (Avoid in RV infarct or PDE-5 inhibitor use).<br>• <b>Oxygen</b> (Only if SpO2 &lt; 90%).<br>• <b>Morphine/Fentanyl</b> for refractory pain.<br>• <b>Beta-Blocker</b> (Metoprolol 5mg IV) if HR/BP permit.</div>
+              <div class="bg-red-50 p-2 rounded border border-red-100"><b class="text-red-800 block mb-0.5">2. Antiplatelet & Anticoagulation:</b><br>• Add Ticagrelor 180mg PO OR Clopidogrel 600mg PO.<br>• Heparin (UFH) 60 U/kg IV bolus + 12 U/kg/hr infusion OR Enoxaparin 1mg/kg SC.</div>
+              <div class="bg-emerald-50 p-2 rounded border border-emerald-100"><b class="text-emerald-800 block mb-0.5">3. Reperfusion (STEMI):</b><br>• Primary PCI (Target Door-to-Balloon &lt; 90 mins).<br>• If PCI unavailable within 120 mins, give Fibrinolytics (Alteplase/Tenecteplase) unless contraindicated.</div>
+              <div class="bg-teal-50 p-2 rounded border border-teal-100"><b class="text-teal-800 block mb-0.5">4. High-Risk Statin:</b> Atorvastatin 80mg PO or Rosuvastatin 40mg PO stat.</div>
+            </div>` 
+      },
+      { 
+        id: "p4", cat: "neuro", badge: "Neurocritical", badgeColor: "bg-purple-100 text-purple-700", t: "🧠 Acute Ischemic Stroke & Thrombolysis", 
+        b: `<div class="space-y-1.5">
+              <div class="bg-slate-50 p-2 rounded border border-slate-200"><b class="text-slate-800 block mb-0.5">1. Initial Actions:</b> Stat Non-Contrast CT Head to rule out hemorrhage. Check POC Glucose. Two large-bore IVs. Keep NPO.</div>
+              <div class="bg-amber-50 p-2 rounded border border-amber-100"><b class="text-amber-800 block mb-0.5">2. BP Control (Crucial):</b><br>• <b>If eligible for tPA:</b> Lower BP to &lt; 185/110 mmHg (Labetalol 10-20mg IV or Nicardipine 5mg/hr IV).<br>• <b>If NO tPA:</b> Permit permissive hypertension up to 220/120 mmHg.</div>
+              <div class="bg-rose-50 p-2 rounded border border-rose-100"><b class="text-rose-800 block mb-0.5">3. Thrombolysis (tPA):</b> If onset &lt; 4.5 hours & no contraindications: Alteplase 0.9 mg/kg IV (Max 90 mg). Give 10% as bolus over 1 min, remaining 90% over 60 mins.</div>
+              <div class="bg-blue-50 p-2 rounded border border-blue-100"><b class="text-blue-800 block mb-0.5">4. Post-tPA Care:</b> Keep BP &lt; 180/105 mmHg for 24 hours. No Aspirin or Heparin for 24 hrs. If tPA was NOT given, give Aspirin 160-325mg PO/PR immediately.</div>
+            </div>` 
+      },
+      { 
+        id: "p5", cat: "surg", badge: "Trauma Surgery", badgeColor: "bg-orange-100 text-orange-800", t: "🔪 ATLS Primary Survey & Hemorrhage Control", 
+        b: `<div class="space-y-1.5">
+              <div class="bg-red-50 p-2 rounded border border-red-100"><b class="text-red-800 block mb-0.5">&lt;C&gt; Catastrophic Hemorrhage:</b> Apply direct pressure, tourniquets, and pelvic binders immediately.</div>
+              <div class="bg-sky-50 p-2 rounded border border-sky-100"><b class="text-sky-800 block mb-0.5">A - Airway & C-Spine:</b> Assess patency. Jaw thrust, insert adjuncts. Consider early intubation. Maintain strictly inline C-spine immobilization.</div>
+              <div class="bg-blue-50 p-2 rounded border border-blue-100"><b class="text-blue-800 block mb-0.5">B - Breathing:</b> Inspect, auscultate, palpate. Treat tension pneumothorax (needle decompression/chest tube), open pneumothorax (3-sided dressing), and massive hemothorax.</div>
+              <div class="bg-rose-50 p-2 rounded border border-rose-100"><b class="text-rose-800 block mb-0.5">C - Circulation:</b> Two large-bore IVs. Send Type & Cross. Start Massive Transfusion Protocol (MTP 1:1:1 PRBC:FFP:Plts) if Class III/IV shock. Give TXA 1g IV over 10 mins.</div>
+              <div class="bg-purple-50 p-2 rounded border border-purple-100"><b class="text-purple-800 block mb-0.5">D - Disability:</b> Check GCS, pupillary response, and lateralizing signs.</div>
+              <div class="bg-slate-50 p-2 rounded border border-slate-200"><b class="text-slate-800 block mb-0.5">E - Exposure/Environment:</b> Completely undress patient to log-roll and examine back. Prevent hypothermia (warm blankets, warm IV fluids).</div>
+            </div>` 
+      },
+      { 
+        id: "p6", cat: "resus", badge: "Resus & Shock", badgeColor: "bg-fuchsia-100 text-fuchsia-800", t: "⚡ Severe Anaphylaxis & Anaphylactic Shock", 
+        b: `<div class="space-y-1.5">
+              <div class="bg-rose-50 p-2 rounded border border-rose-100"><b class="text-rose-800 block mb-0.5">1. First-Line (Life-Saving):</b> Epinephrine (1:1,000) 0.3 – 0.5 mg IM in the anterolateral thigh. Repeat every 5-15 mins PRN. <i>(Never give 1:1,000 IV)</i>.</div>
+              <div class="bg-blue-50 p-2 rounded border border-blue-100"><b class="text-blue-800 block mb-0.5">2. Airway & Circulation:</b> High-flow O2. Give 1 to 2 Liters 0.9% NS IV bolus wide open for hypotension. Prepare for early intubation if stridor/airway edema develops.</div>
+              <div class="bg-teal-50 p-2 rounded border border-teal-100"><b class="text-teal-800 block mb-0.5">3. Second-Line (Adjuncts):</b><br>• <b>H1 Blocker:</b> Diphenhydramine 50 mg IV/IM.<br>• <b>H2 Blocker:</b> Famotidine 20 mg IV.<br>• <b>Steroid:</b> Hydrocortisone 100 mg IV or Methylprednisolone 125 mg IV (prevents biphasic reaction).<br>• <b>Bronchodilator:</b> Albuterol 2.5-5mg neb.</div>
+              <div class="bg-amber-50 p-2 rounded border border-amber-100"><b class="text-amber-800 block mb-0.5">4. Refractory Shock:</b> Start Epinephrine IV infusion at 0.1 mcg/kg/min and titrate up.</div>
+            </div>` 
+      },
+      { 
+        id: "p7", cat: "med", badge: "Pulmonology ER", badgeColor: "bg-sky-100 text-sky-800", t: "🫁 Severe Acute Asthma Exacerbation", 
+        b: `<div class="space-y-1.5">
+              <div class="bg-blue-50 p-2 rounded border border-blue-100"><b class="text-blue-800 block mb-0.5">1. Oxygen & Bronchodilators:</b> Target SpO2 93-95%. Give Salbutamol 5 mg + Ipratropium 0.5 mg via nebulizer every 20 mins for 3 doses, then continuous nebulization (10-15 mg/hr) if severe.</div>
+              <div class="bg-emerald-50 p-2 rounded border border-emerald-100"><b class="text-emerald-800 block mb-0.5">2. Systemic Steroids (Do not delay):</b> Methylprednisolone (Solu-Medrol) 40-125 mg IV OR Prednisolone 40-50mg PO.</div>
+              <div class="bg-purple-50 p-2 rounded border border-purple-100"><b class="text-purple-800 block mb-0.5">3. Adjuncts for Severe/Refractory:</b><br>• <b>Magnesium Sulfate:</b> 2 g IV over 20 mins.<br>• <b>Epinephrine:</b> 0.3 mg IM (if impending arrest/silent chest).<br>• Trial of NIPPV (BiPAP) to prevent fatigue before intubating.</div>
+              <div class="bg-rose-50 p-2 rounded border border-rose-100"><b class="text-rose-800 block mb-0.5">4. RSI / Intubation:</b> Use Ketamine (1.5-2 mg/kg IV) as induction agent (has bronchodilatory properties).</div>
+            </div>` 
+      },
+      { 
+        id: "p8", cat: "resus", badge: "ACLS Cardiac Arrest", badgeColor: "bg-red-100 text-red-800", t: "⚡ ACLS Adult Cardiac Arrest (CPR)", 
+        b: `<div class="space-y-1.5">
+              <div class="bg-slate-50 p-2 rounded border border-slate-200"><b class="text-slate-800 block mb-0.5">1. High-Quality CPR:</b> Push hard (≥2 inches) and fast (100-120/min). Allow full recoil. Minimize interruptions. 30:2 ratio (if not intubated) or 1 breath q6s (if intubated).</div>
+              <div class="bg-rose-50 p-2 rounded border border-rose-100"><b class="text-rose-800 block mb-0.5">2. Shockable (VF / pVT):</b><br>• Shock immediately. Resume CPR for 2 mins.<br>• Check rhythm. Shock. Resume CPR + <b>Epinephrine 1 mg IV</b> (repeat q3-5 mins).<br>• Check rhythm. Shock. Resume CPR + <b>Amiodarone 300 mg IV bolus</b> (2nd dose 150 mg).</div>
+              <div class="bg-sky-50 p-2 rounded border border-sky-100"><b class="text-sky-800 block mb-0.5">3. Non-Shockable (Asystole / PEA):</b><br>• CPR for 2 mins + <b>Epinephrine 1 mg IV IMMEDIATELY</b> (repeat q3-5 mins).<br>• DO NOT SHOCK. Focus on high-quality CPR and identifying reversible causes.</div>
+              <div class="bg-amber-50 p-2 rounded border border-amber-100"><b class="text-amber-800 block mb-0.5">4. Identify Reversible Causes (H's & T's):</b> Hypovolemia, Hypoxia, Hydrogen ion (acidosis), Hypo/Hyperkalemia, Hypothermia, Tension pneumo, Tamponade, Toxins, Thrombosis (Pulmonary/Coronary).</div>
+            </div>` 
+      }
+    ];
+
+    const suggestionList = [
+      "Acetaminophen", "Adenosine", "Albuterol", "Allopurinol", "Alteplase", "Amikacin", 
+      "Aminophylline", "Amiodarone", "Amlodipine", "Amoxicillin", "Amoxicillin/Clavulanate", 
+      "Ampicillin", "Apixaban", "Aspirin", "Atorvastatin", "Atropine", "Azithromycin", 
+      "Bisoprolol", "Bromhexine", "Budesonide", "Bumetanide", "Calcium Chloride", "Calcium Gluconate",
+      "Candesartan", "Captopril", "Carbimazole", "Carvedilol", "Cefazolin", "Cefepime", 
+      "Cefixime", "Cefotaxime", "Ceftazidime", "Ceftriaxone", "Cefuroxime", "Celecoxib", 
+      "Cephalexin", "Cetirizine", "Chlorpheniramine", "Ciprofloxacin", "Citalopram", "Clarithromycin", 
+      "Clindamycin", "Clopidogrel", "Colchicine", "Dapagliflozin", "Desloratadine", "Dexamethasone", 
+      "Diazepam", "Diclofenac", "Digibind", "Digoxin", "Diltiazem", "Diphenhydramine", 
+      "Domperidone", "Doxycycline", "Dutasteride", "Empagliflozin", "Enalapril", "Enoxaparin", 
+      "Epinephrine", "Eplerenone", "Erythropoietin", "Escitalopram", "Esomeprazole", "Febuxostat", 
+      "Fentanyl", "Ferric Carboxymaltose", "Ferrous Sulfate", "Fexofenadine", "Finasteride", "Fluconazole",
+      "Flumazenil", "Fluoxetine", "Fluticasone/Salmeterol", "Folic Acid", "Furosemide", "Gabapentin", 
+      "Gentamicin", "Gliclazide", "Glimepiride", "Glucagon", "Haloperidol", "Heparin", 
+      "Human Albumin 20%", "Hydrochlorothiazide", "Hydrocortisone", "Hyoscine Butylbromide", 
+      "Hypertonic Saline 3%", "Ibuprofen", "Insulin Aspart", "Insulin Detemir", "Insulin Glargine", 
+      "Insulin Lispro", "Intralipid 20%", "Ipratropium", "Iron Sucrose", "Isosorbide Dinitrate", 
+      "Isosorbide Mononitrate", "Itraconazole", "Ketamine", "Ketorolac", "Labetalol", "Lansoprazole", 
+      "Levetiracetam", "Levocetirizine", "Levofloxacin", "Levothyroxine", "Linagliptin", "Linezolid", 
+      "Liraglutide", "Lisinopril", "Lithium", "Loperamide", "Loratadine", "Losartan", "Magnesium Sulfate", 
+      "Mannitol 20%", "Mebeverine", "Meropenem", "Mesalazine", "Metformin", "Methergine", "Methimazole", 
+      "Methotrexate", "Methylergometrine", "Methylprednisolone", "Metoprolol", "Metronidazole", 
+      "Midazolam", "Misoprostol", "Montelukast", "Morphine", "Moxifloxacin", "N-Acetylcysteine", "Naloxone", 
+      "Naproxen", "Nicardipine", "Nifedipine", "Nitrofurantoin", "Nitroglycerin", "Norepinephrine", 
+      "Normal Saline 0.9%", "NPH Insulin", "Octreotide", "Olanzapine", "Omeprazole", "Ondansetron",
+      "Oxybutynin", "Oxytocin", "Pantoprazole", "Paracetamol", "Paroxetine", "Phenytoin", 
+      "Piperacillin/Tazobactam", "Potassium Chloride", "Pralidoxime", "Prednisolone", "Pregabalin", 
+      "Propofol", "Propranolol", "Propylthiouracil", "Quetiapine", "Regular Insulin", "Rifampicin", 
+      "Ringer's Lactate", "Risperidone", "Rivaroxaban", "Rocuronium", "Rosuvastatin", "Sacubitril/Valsartan", 
+      "Salbutamol", "Semaglutide", "Sertraline", "Sildenafil", "Simvastatin", "Sitagliptin", 
+      "Sodium Bicarbonate", "Sodium Nitroprusside", "Sodium Polystyrene (Kayexalate)", "Solifenacin", 
+      "Spironolactone", "Sugammadex", "Tadalafil", "Tamsulosin", "Terlipressin", "Ticagrelor", "Tiotropium", 
+      "TMP-SMX (Bactrim)", "Tramadol", "Tranexamic Acid", "Ursodeoxycholic Acid", "Valsartan", 
+      "Vancomycin", "Verapamil", "Vitamin B12", "Warfarin"
+    ];
+
+    function showDrugSuggestions(val) {
+      const listEl = document.getElementById('rxMedSuggestions');
+      if (!val || val.length < 1) {
+        listEl.classList.add('hidden');
+        return;
+      }
+      const q = val.toLowerCase();
+      const matches = suggestionList.filter(d => d.toLowerCase().includes(q));
+      if (matches.length === 0) {
+        listEl.classList.add('hidden');
+        return;
+      }
+      listEl.innerHTML = matches.map(m => `
+        <li data-drug="${m.replace(/"/g, '&quot;')}" onclick="selectDrugSuggestion(this.dataset.drug)" class="px-3 py-2 cursor-pointer hover:bg-sky-50 hover:text-sky-700 border-b border-slate-100 font-semibold">${m}</li>
+      `).join('');
+      listEl.classList.remove('hidden');
+    }
+
+    function selectDrugSuggestion(val) {
+      document.getElementById('rxMedName').value = val;
+      document.getElementById('rxMedSuggestions').classList.add('hidden');
+      updateRxPreview();
+    }
+
+    document.addEventListener('click', function(e) {
+      const rxMedName = document.getElementById('rxMedName');
+      const rxMedSuggestions = document.getElementById('rxMedSuggestions');
+      if (rxMedName && rxMedSuggestions && !rxMedName.contains(e.target) && !rxMedSuggestions.contains(e.target)) {
+        rxMedSuggestions.classList.add('hidden');
+      }
+    });
+
+    function init() {
+      document.getElementById('catBar').innerHTML = cats.map(c=>`<button onclick="setCat('${c[0]}')" class="px-3.5 py-1.5 rounded-xl shrink-0 transition shadow-sm ${c[0]===curCat?'bg-sky-600 text-white font-extrabold':'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'}">${c[1]}</button>`).join('');
+      document.getElementById('abxCatBar').innerHTML = abxCats.map(c=>`<button onclick="setAbxCat('${c[0]}')" class="px-3.5 py-1.5 rounded-xl shrink-0 transition shadow-sm ${c[0]===curAbxCat?'bg-emerald-600 text-white font-extrabold':'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'}">${c[1]}</button>`).join('');
+      document.getElementById('protoCatBar').innerHTML = protoCats.map(c=>`<button onclick="setProtoCat('${c[0]}')" class="px-3.5 py-1.5 rounded-xl shrink-0 transition shadow-sm ${c[0]===curProtoCat?'bg-sky-600 text-white font-extrabold':'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'}">${c[1]}</button>`).join('');
+      
+      document.getElementById('rxDate').value = new Date().toISOString().split('T')[0];
+      updateRxPreview();
+      calcCrCl(); renderDrugs(); renderAbx(); renderProtos(); calcBurn(); calcAlv(); calcQsofa(); calcWells(); renderArchive();
+    }
+
+    function toggleAcc(id) {
+      if (openSet.has(id)) openSet.delete(id);
+      else openSet.add(id);
+      renderDrugs(); renderAbx(); renderProtos();
+    }
+
+    function toggleGroup(group) {
+      let ids = [];
+      if (group === 'drug') ids = drugs.map(d => d.id);
+      else if (group === 'abx') ids = catItems.filter(i => i.cat === curAbxCat).map(i => i.id);
+      else if (group === 'proto') ids = protos.map(p => p.id);
+
+      const anyOpen = ids.some(id => openSet.has(id));
+      ids.forEach(id => {
+        if (anyOpen) openSet.delete(id);
+        else openSet.add(id);
+      });
+      renderDrugs(); renderAbx(); renderProtos();
+    }
+
+    function setW(v) {
+      W = Math.max(2, Math.min(200, parseFloat(v)||70));
+      ['wInpMob','wInpSide'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).value = W; });
+      if(document.getElementById('wRngSide')) document.getElementById('wRngSide').value = Math.min(W,150);
+      if(document.getElementById('wRngMob')) document.getElementById('wRngMob').value = Math.min(W,150);
+      document.getElementById('hdrW').innerText = W+' kg';
+      document.getElementById('sideWBadge').innerText = W+' kg';
+      calcCrCl(); renderDrugs(); calcBurn();
+    }
+
+    function setA(v) {
+      A = Math.max(0, Math.min(120, parseFloat(v)||45));
+      ['aInpMob','aInpSide','rAge'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).value = A; });
+      document.getElementById('hdrA').innerText = A+' yr';
+      document.getElementById('sideABadge').innerText = A+' yrs';
+      calcCrCl();
+    }
+
+    function calcCrCl() {
+      const age = Math.max(1, parseFloat(document.getElementById('rAge').value) || A || 45);
+      const scr = Math.max(0.2, parseFloat(document.getElementById('rScr').value) || 1.0);
+      const sex = parseFloat(document.getElementById('rSex').value) || 1.0;
+      CrCl = Math.max(1, Math.round(((140 - age) * W * sex) / (72 * scr)));
+
+      const resEl = document.getElementById('crclResult');
+      const stgEl = document.getElementById('crclStage');
+      resEl.innerText = `${CrCl} mL/min`;
+      document.getElementById('sideCrClBadge').innerText = `${CrCl} mL/min`;
+
+      if (CrCl > 50) {
+        resEl.className = "text-lg font-extrabold text-emerald-700";
+        stgEl.innerText = "Normal (>50)";
+      } else if (CrCl >= 20) {
+        resEl.className = "text-lg font-extrabold text-amber-700";
+        stgEl.innerText = "Moderate (20–50)";
+      } else {
+        resEl.className = "text-lg font-extrabold text-rose-700";
+        stgEl.innerText = "Severe (<20)";
+      }
+    }
+
+    function setCat(c) { curCat = c; renderDrugs(); }
+    function setAbxCat(c) { curAbxCat = c; renderAbx(); }
+    function setProtoCat(c) { curProtoCat = c; renderProtos(); }
+
+    function addRxItem() {
+      const name = document.getElementById('rxMedName').value.trim();
+      const freq = document.getElementById('rxMedFreq').value.trim();
+      const route = document.getElementById('rxMedRoute').value.trim();
+      if (!name) { showToast('Please enter a medication name.'); return; }
+      rxItems.push({ name, freq: freq || 'as directed', route: route || 'oral/IV' });
+      document.getElementById('rxMedName').value = '';
+      document.getElementById('rxMedFreq').value = '';
+      document.getElementById('rxMedRoute').value = '';
+      updateRxPreview();
+    }
+
+    function removeRxItem(idx) {
+      rxItems.splice(idx, 1);
+      updateRxPreview();
+    }
+
+    function updateRxPreview() {
+      const ptName = document.getElementById('rxPtName').value.trim() || 'John Doe';
+      const ptAge = document.getElementById('rxPtAge').value.trim() || A;
+      const ptSex = document.getElementById('rxPtSex').value;
+      const ageSexStr = ptAge ? `${ptAge} yrs / ${ptSex}` : `-- / ${ptSex}`;
+      const rxDate = document.getElementById('rxDate').value || new Date().toISOString().split('T')[0];
+      const rxNotes = document.getElementById('rxNotes').value.trim() || 'Take medications as prescribed.';
+
+      document.getElementById('prevName').innerText = ptName;
+      document.getElementById('prevAge').innerText = ageSexStr;
+      document.getElementById('prevDate').innerText = rxDate;
+      document.getElementById('prevNotes').innerText = rxNotes;
+
+      const listEl = document.getElementById('rxItemsList');
+      if (rxItems.length === 0) {
+        listEl.innerHTML = `<p class="text-slate-400 italic text-xs">No medications added yet.</p>`;
+      } else {
+        listEl.innerHTML = rxItems.map((item, idx) => `
+          <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-200">
+            <div>
+              <div class="font-extrabold text-slate-900">${idx + 1}. ${item.name}</div>
+              <div class="text-slate-600">${item.freq} — <span class="italic text-sky-700">${item.route}</span></div>
+            </div>
+            <button onclick="removeRxItem(${idx})" class="text-rose-600 text-xs font-bold px-2 py-1 bg-rose-50 rounded-lg border border-rose-200">Remove</button>
+          </div>
+        `).join('');
+      }
+      
+      const alerts = checkInteractions();
+      const interEl = document.getElementById('rxInteractions');
+      const formInterEl = document.getElementById('formInteractions');
+      const badgeEl = document.getElementById('interactionBadge');
+      
+      if(alerts.length > 0) {
+        interEl.classList.remove('hidden');
+        interEl.innerHTML = `<h3 class="font-extrabold text-rose-900 text-xs mb-1">⚠️ Drug Interactions:</h3>` + 
+          alerts.map(a => `
+          <div class="bg-rose-50 border-l-4 border-rose-500 p-2 rounded-r-lg mb-1">
+            <h4 class="font-bold text-rose-900 text-[11px]">${a.found.join(' + ')}</h4>
+            <p class="text-rose-800 text-xs">${a.desc}</p>
+          </div>
+        `).join('');
+
+        badgeEl.className = "bg-rose-100 text-rose-700 px-2 py-0.5 rounded-lg text-[10px] font-bold border border-rose-200";
+        badgeEl.innerText = `${alerts.length} Detected`;
+        
+        formInterEl.innerHTML = alerts.map(a => `
+          <div class="mb-1">
+            <span class="font-bold text-rose-700">${a.severity}:</span> <span class="text-slate-800 font-semibold">${a.found.join(' + ')}</span>
+            <div class="text-[10px] text-rose-800">${a.desc}</div>
+          </div>
+        `).join('');
+        formInterEl.className = "text-xs bg-rose-50 p-2.5 rounded-xl border border-rose-300";
+      } else {
+        interEl.classList.add('hidden');
+        interEl.innerHTML = '';
+        badgeEl.className = "bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-lg text-[10px] font-bold border border-emerald-200";
+        badgeEl.innerText = "Safe";
+        formInterEl.innerHTML = `No known interactions detected.`;
+        formInterEl.className = "text-xs text-emerald-700 italic bg-emerald-50 p-2.5 rounded-xl border border-emerald-200";
+      }
+    }
+
+    ['rxPtName', 'rxPtAge', 'rxPtSex', 'rxDate', 'rxNotes'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updateRxPreview);
+    });
+
+    function printRx() {
+      const content = document.getElementById('rxPreviewSheet').innerHTML;
+      const win = window.open('', '', 'height=700,width=700');
+      win.document.write('<html><head><title>Prescription</title><script src="https://cdn.tailwindcss.com"><\/script></head><body class="p-8 bg-white">');
+      win.document.write(content);
+      win.document.write('</body></html>');
+      win.document.close();
+      win.focus();
+      setTimeout(() => { win.print(); }, 500);
+    }
+
+    // --- ARCHIVE LOGIC ---
+    function saveRx() {
+      const ptName = document.getElementById('rxPtName').value.trim();
+      if (!ptName && rxItems.length === 0) {
+        showToast("Cannot save an empty prescription without a patient name.");
+        return;
+      }
+      
+      const rxData = {
+        id: Date.now().toString(),
+        name: ptName || "Unnamed Patient",
+        age: document.getElementById('rxPtAge').value.trim() || "",
+        sex: document.getElementById('rxPtSex').value,
+        date: document.getElementById('rxDate').value || new Date().toISOString().split('T')[0],
+        notes: document.getElementById('rxNotes').value.trim(),
+        items: JSON.parse(JSON.stringify(rxItems))
+      };
+
+      let archive = JSON.parse(localStorage.getItem('erRxArchive') || '[]');
+      archive.unshift(rxData); // Add to beginning
+      localStorage.setItem('erRxArchive', JSON.stringify(archive));
+      
+      showToast("Prescription saved to Archive!");
+      renderArchive();
+    }
+
+    function loadRx(id) {
+      let archive = JSON.parse(localStorage.getItem('erRxArchive') || '[]');
+      let rxData = archive.find(r => r.id === id);
+      if(rxData) {
+        document.getElementById('rxPtName').value = rxData.name !== "Unnamed Patient" ? rxData.name : "";
+        document.getElementById('rxPtAge').value = rxData.age || "";
+        if(rxData.sex) document.getElementById('rxPtSex').value = rxData.sex;
+        document.getElementById('rxDate').value = rxData.date;
+        document.getElementById('rxNotes').value = rxData.notes;
+        rxItems = JSON.parse(JSON.stringify(rxData.items));
+        updateRxPreview();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function deleteRx(id) {
+      let archive = JSON.parse(localStorage.getItem('erRxArchive') || '[]');
+      archive = archive.filter(r => r.id !== id);
+      localStorage.setItem('erRxArchive', JSON.stringify(archive));
+      renderArchive();
+      showToast("Prescription deleted.");
+    }
+
+    function renderArchive() {
+      const archiveList = document.getElementById('archiveList');
+      let archive = JSON.parse(localStorage.getItem('erRxArchive') || '[]');
+      
+      if (archive.length === 0) {
+        archiveList.innerHTML = `<div class="col-span-full text-center p-8 bg-slate-50 border border-slate-200 rounded-xl text-slate-500 italic">No prescriptions saved in the archive yet.</div>`;
+        return;
+      }
+
+      archiveList.innerHTML = archive.map(rx => `
+        <div class="card p-4 flex flex-col justify-between space-y-3 bg-white border border-slate-200">
+          <div>
+            <div class="flex justify-between items-start border-b border-slate-100 pb-2 mb-2">
+              <h3 class="font-extrabold text-sm text-slate-900 truncate">${rx.name}</h3>
+              <span class="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-lg">${rx.date}</span>
+            </div>
+            <div class="text-[11px] text-slate-500 mb-2">${rx.age ? `Age: ${rx.age} yrs | Sex: ${rx.sex || 'Unknown'}` : `Sex: ${rx.sex || 'Unknown'}`}</div>
+            <div class="space-y-1">
+              ${rx.items.slice(0, 3).map(item => `<div class="text-xs font-semibold text-sky-700 truncate">• ${item.name}</div>`).join('')}
+              ${rx.items.length > 3 ? `<div class="text-[10px] text-slate-400 italic">+ ${rx.items.length - 3} more items...</div>` : ''}
+              ${rx.items.length === 0 ? `<div class="text-[10px] text-slate-400 italic">No medications</div>` : ''}
+            </div>
+          </div>
+          <div class="flex gap-2 pt-2 border-t border-slate-100">
+            <button onclick="loadRx('${rx.id}')" class="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 py-1.5 rounded-lg font-bold transition">Edit / Load</button>
+            <button onclick="deleteRx('${rx.id}')" class="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 py-1.5 rounded-lg font-bold transition">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+    // --- END ARCHIVE LOGIC ---
+
+    function renderDrugs() {
+      const q = (document.getElementById('dSearch').value||'').toLowerCase().trim();
+      const list = drugs.filter(d => (curCat==='all'||d.c===curCat) && (!q || d.n.toLowerCase().includes(q) || d.t.toLowerCase().includes(q)));
+      document.getElementById('drugsList').innerHTML = list.map(d => {
+        const isOpen = openSet.has(d.id) || q.length > 1;
+        return `
+        <div class="card overflow-hidden transition border ${isOpen ? 'border-sky-500 shadow-md' : 'border-slate-200'}">
+          <button onclick="toggleAcc('${d.id}')" class="w-full p-3.5 text-left flex justify-between items-center gap-2 bg-slate-50 hover:bg-slate-100 transition">
+            <div class="min-w-0">
+              <b class="text-xs md:text-sm text-slate-900 block truncate">${d.n}</b>
+              <span class="text-[10px] text-sky-600 font-semibold">${d.t}</span>
+            </div>
+            <span class="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-sky-600 text-xs font-bold shrink-0 shadow-sm">
+              ${isOpen ? '▲' : '▼'}
+            </span>
+          </button>
+          <div class="${isOpen ? 'block' : 'hidden'} p-3.5 border-t border-slate-200 bg-white space-y-2 text-xs">
+            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 leading-relaxed text-slate-800">${d.f(W)}</div>
+            <p class="text-[11px] text-amber-900 bg-amber-50 border border-amber-200 p-2 rounded-lg">💡 <b>Clinical Pearl:</b> ${d.i}</p>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderAbx() {
+      const q = (document.getElementById('abxSearch').value||'').toLowerCase().trim();
+      const list = catItems.filter(i => i.cat===curAbxCat && (!q || i.title.toLowerCase().includes(q) || (i.class && i.class.toLowerCase().includes(q))));
+      document.getElementById('abxList').innerHTML = `<div class="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">` + list.map(i => {
+        const isOpen = openSet.has(i.id) || q.length > 1;
+        return `
+        <div class="card overflow-hidden transition border ${isOpen ? 'border-emerald-500 shadow-md' : 'border-slate-200'}">
+          <button onclick="toggleAcc('${i.id}')" class="w-full p-3.5 text-left flex justify-between items-center gap-2 bg-slate-50 hover:bg-slate-100 transition">
+            <div class="space-y-1">
+              <span class="text-[10px] ${i.badgeColor} px-2 py-0.5 rounded-full font-bold inline-block">${i.badge}</span>
+              <h3 class="font-extrabold text-xs md:text-sm text-slate-900 leading-tight">${i.title}</h3>
+            </div>
+            <span class="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-emerald-600 text-xs font-bold shrink-0 shadow-sm">
+              ${isOpen ? '▲' : '▼'}
+            </span>
+          </button>
+          <div class="${isOpen ? 'block' : 'hidden'} p-3.5 border-t border-slate-200 bg-white space-y-2 text-xs">
+            ${i.class ? `<div class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">${i.class}</div>` : ''}
+            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs space-y-1 text-slate-800">
+              <div><b class="text-sky-700">Dose:</b> ${i.dose || i.adult}</div>
+              ${i.peds ? `<div class="pt-1"><b class="text-emerald-700">Peds:</b> ${i.peds}</div>` : ''}
+              ${i.notes ? `<div class="text-[11px] text-slate-600 pt-1.5 border-t border-slate-200 mt-1.5">💡 ${i.notes}</div>` : ''}
+            </div>
+          </div>
+        </div>
+        `;
+      }).join('') + `</div>`;
+    }
+
+    function renderProtos() {
+      const q = (document.getElementById('pSearch').value||'').toLowerCase().trim();
+      const filtered = protos.filter(p => (curProtoCat==='all' || p.cat===curProtoCat) && (!q || p.t.toLowerCase().includes(q)));
+      document.getElementById('protoList').innerHTML = filtered.map(p => {
+        const isOpen = openSet.has(p.id) || q.length > 1;
+        return `
+        <div class="card overflow-hidden transition border ${isOpen ? 'border-sky-500 shadow-md' : 'border-slate-200'}">
+          <button onclick="toggleAcc('${p.id}')" class="w-full p-3.5 text-left flex justify-between items-center gap-2 bg-slate-50 hover:bg-slate-100 transition">
+            <div class="space-y-1">
+              <span class="text-[10px] ${p.badgeColor} px-2.5 py-0.5 rounded-full font-bold inline-block">${p.badge}</span>
+              <h3 class="font-extrabold text-xs md:text-sm text-slate-900">${p.t}</h3>
+            </div>
+            <span class="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-sky-600 text-xs font-bold shrink-0 shadow-sm">
+              ${isOpen ? '▲' : '▼'}
+            </span>
+          </button>
+          <div class="${isOpen ? 'block' : 'hidden'} p-4 border-t border-slate-200 bg-white text-slate-800 text-xs leading-relaxed">
+            ${p.b}
+          </div>
+        </div>
+        `;
+      }).join('');
+    }
+
+    function calcGCS() {
+      const e=+document.getElementById('gcsE').value, v=+document.getElementById('gcsV').value, m=+document.getElementById('gcsM').value;
+      const total = e + v + m;
+      const outEl = document.getElementById('gcsOut');
+      outEl.innerText = `${total}/15 (E${e} V${v} M${m})`;
+      
+      const noteEl = document.getElementById('gcsNote');
+      if (total >= 13) {
+        outEl.className = "text-xl font-extrabold text-emerald-600";
+        noteEl.className = "bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-center text-emerald-700 font-bold";
+        noteEl.innerText = "Mild Brain Injury (13–15)";
+      } else if (total >= 9) {
+        outEl.className = "text-xl font-extrabold text-amber-600";
+        noteEl.className = "bg-amber-50 border border-amber-300 p-2.5 rounded-xl text-center text-amber-800 font-bold";
+        noteEl.innerText = "Moderate Brain Injury (9–12)";
+      } else {
+        outEl.className = "text-xl font-extrabold text-rose-600";
+        noteEl.className = "bg-rose-100 border border-rose-300 p-2.5 rounded-xl text-center text-rose-800 font-bold";
+        noteEl.innerText = "Severe Brain Injury (≤8) - Intubate!";
+      }
+    }
+
+    function copyGCS() { navigator.clipboard.writeText('GCS ' + document.getElementById('gcsOut').innerText); showToast('Copied to clipboard!'); }
+
+    function calcAlv() {
+      let score = 0;
+      document.querySelectorAll('.alv-chk:checked').forEach(el => score += parseInt(el.value));
+      document.getElementById('alvScore').innerText = `${score} / 10`;
+      
+      const outEl = document.getElementById('alvOut');
+      if (score <= 4) {
+        outEl.className = "bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-center font-bold text-slate-700 text-xs";
+        outEl.innerText = "Score 1–4: Unlikely";
+      } else if (score <= 6) {
+        outEl.className = "bg-amber-50 border border-amber-300 p-2.5 rounded-xl text-center font-bold text-amber-800 text-xs";
+        outEl.innerText = "Score 5–6: Possible (Observe/Scan)";
+      } else if (score <= 8) {
+        outEl.className = "bg-orange-50 border border-orange-300 p-2.5 rounded-xl text-center font-bold text-orange-800 text-xs";
+        outEl.innerText = "Score 7–8: Probable (Surg Consult)";
+      } else {
+        outEl.className = "bg-rose-100 border border-rose-300 p-2.5 rounded-xl text-center font-bold text-rose-800 text-xs";
+        outEl.innerText = "Score 9–10: Highly Probable";
+      }
+    }
+
+    function calcQsofa() {
+      let score = 0;
+      document.querySelectorAll('.qsofa-chk:checked').forEach(el => score += parseInt(el.value));
+      document.getElementById('qsofaScore').innerText = `${score} / 3`;
+      const outEl = document.getElementById('qsofaOut');
+      if (score >= 2) {
+        outEl.className = "bg-rose-100 border border-rose-300 p-2.5 rounded-xl text-center font-bold text-rose-800 text-xs";
+        outEl.innerText = "Score ≥ 2: High Risk (Assess for Sepsis)";
+      } else {
+        outEl.className = "bg-emerald-50 border border-emerald-300 p-2.5 rounded-xl text-center font-bold text-emerald-800 text-xs";
+        outEl.innerText = "Score 0–1: Low Risk";
+      }
+    }
+
+    function calcWells() {
+      let score = 0.0;
+      document.querySelectorAll('.wells-chk:checked').forEach(el => score += parseFloat(el.value));
+      document.getElementById('wellsScore').innerText = score.toFixed(1);
+      const outEl = document.getElementById('wellsOut');
+      if (score > 4) {
+        outEl.className = "bg-rose-100 border border-rose-300 p-2.5 rounded-xl text-center font-bold text-rose-800 text-xs";
+        outEl.innerText = "Score > 4: PE Likely (Consider CTA)";
+      } else {
+        outEl.className = "bg-emerald-50 border border-emerald-300 p-2.5 rounded-xl text-center font-bold text-emerald-800 text-xs";
+        outEl.innerText = "Score ≤ 4: PE Unlikely (Consider D-Dimer)";
+      }
+    }
+
+    function calcBurn() {
+      const tbsa = Math.max(1, Math.min(100, parseFloat(document.getElementById('burnTbsa').value)||20));
+      const total = Math.round(4 * W * tbsa);
+      const half = Math.round(total / 2);
+      document.getElementById('burnOut').innerHTML = `
+        <div class="text-sm font-extrabold text-slate-900">Total 24h: ${total} mL LR</div>
+        <div class="text-xs text-sky-700 font-bold">1st 8h: ${half} mL (${Math.round(half/8)} mL/hr)</div>
+      `;
+    }
+
+    function tab(t) {
+      ['dosing','abx','rx','protocols','scales','cod'].forEach(x => {
+        if(document.getElementById('tab-'+x)) document.getElementById('tab-'+x).classList.add('hidden');
+      });
+      document.getElementById('tab-'+t).classList.remove('hidden');
+      
+      ['dosing','abx','rx','protocols','scales','cod'].forEach(x => {
+        const mobBtn = document.getElementById('n-'+x);
+        if(mobBtn) mobBtn.className = (x===t) ? "py-2 flex flex-col items-center active-mob" : "py-2 flex flex-col items-center text-slate-500";
+        const sideBtn = document.getElementById('s-'+x);
+        if(sideBtn) sideBtn.className = (x===t) ? "w-full p-3 rounded-xl border border-transparent flex items-center gap-3 text-left transition active-side" : "w-full p-3 rounded-xl border border-slate-200 flex items-center gap-3 text-left text-slate-700 hover:bg-slate-100 transition";
+      });
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toastMsg');
+      if(!el) return;
+      el.innerText = msg;
+      el.classList.remove('opacity-0');
+      setTimeout(() => el.classList.add('opacity-0'), 2500);
+    }
+
+    init();
+  </script>
+</body>
+</html>
